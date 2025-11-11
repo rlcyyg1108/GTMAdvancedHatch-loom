@@ -145,6 +145,8 @@ if (propertyBool('enable_junit')) {
 }
 
 processResources {
+    exclude "**/.cache"
+    exclude "**/SimplifiedToTraditional.properties"
     if (!propertyBool("use_access_widener")) {
         exclude("${propertyString('access_widener_name')}.accesswidener")
     }
