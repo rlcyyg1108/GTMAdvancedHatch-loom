@@ -22,6 +22,7 @@ plugins {
     id('dev.architectury.loom').version('1.10-SNAPSHOT')
     id('maven-publish')
     id('idea')
+    id('com.diffplug.spotless').version('7.0.2')
     id('com.matthewprenger.cursegradle').version('1.4.0').apply(false) //only used for CF publishing
     id('com.modrinth.minotaur').version('2.+').apply(false)            //only used for Modrinth publishing
     id('org.jetbrains.changelog').version('2.2.0')
@@ -181,6 +182,7 @@ tasks.withType(JavaCompile).configureEach {
     // very few developers will provide source jar when publishing mods, we add param names in production jar
     // to make life easier for those whose mod depend on this mod
     options.compilerArgs << '-parameters'
+    options.compilerArgs << "-Xlint:-deprecation"
 
 //    options.release = javaTarget
 }
@@ -234,3 +236,5 @@ processResources.dependsOn(generateMixinJson, generateAccessWidenerBase)
 apply from: 'gradle/scripts/publishing.gradle'
 
 apply from: 'gradle/scripts/extra.gradle'
+
+apply from: "gradle/scripts/spotless.gradle"
