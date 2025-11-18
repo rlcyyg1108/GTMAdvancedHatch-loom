@@ -4,8 +4,14 @@ import com.xingmot.gtmadvancedhatch.util.copy.NumberUtils;
 
 import com.lowdragmc.lowdraglib.side.fluid.FluidHelper;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.text.DecimalFormat;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,5 +97,39 @@ public class AHFormattingUtil {
             return df.format(temp) + UNITS[unitIndex];
         else
             return df2.format(temp) + UNITS[unitIndex];
+    }
+
+    /**
+     * 主要重构自Savitor的FormatUtil代码
+     * 
+     * @param leftComponent  左对齐组件
+     * @param rightComponent 右对齐组件
+     * @param width          宽度
+     * @param fill           填充使用的字符串
+     * @return 返回组装后的组件
+     */
+    // TODO 文本长度过长时自动缩放字体
+    @OnlyIn(Dist.CLIENT)
+    public static MutableComponent getFormatiWidthComponent(MutableComponent leftComponent, MutableComponent rightComponent, int width, String fill) {
+        int baseLength = Minecraft.getInstance().font.width(Component.empty().append(leftComponent).append(rightComponent).getString());
+        var spaceLength = width - baseLength;
+        if (spaceLength <= 0) return Component.empty().append(leftComponent).append(" ").append(rightComponent);
+        // 获取字体实例
+        Font font = Minecraft.getInstance().font;
+        // 测量一个分隔符的宽度
+        int fillWidth;
+        if (fill.equals("·")) fillWidth = font.width(Component.literal(fill).setStyle(Style.EMPTY.withFont(new ResourceLocation("gtmadvancedhatch", "separator_font"))));
+        else fillWidth = font.width(Component.literal(fill));
+        // 测量一个空格的宽度
+        int spaceWidth = font.width(" ");
+        int totalSpacerWidth = spaceLength - 2 * spaceWidth; // 预留2个空格的宽度
+        int spacerCount = totalSpacerWidth / fillWidth;
+        if (totalSpacerWidth <= 0 || spacerCount <= 0) return Component.empty().append(leftComponent).append(rightComponent);
+        if (fill.equals("·")) return Component.empty()
+                .append(leftComponent).append(" ")
+                .append(Component.literal(fill.repeat(spacerCount))
+                        .withStyle(Style.EMPTY.withFont(new ResourceLocation("gtmadvancedhatch", "separator_font"))))
+                .append(" ").append(rightComponent);
+        else return Component.empty().append(leftComponent).append(" ").append(fill.repeat(spacerCount)).append(" ").append(rightComponent);
     }
 }

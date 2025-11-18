@@ -1,10 +1,7 @@
 package com.xingmot.gtmadvancedhatch.common.machines.adaptivehatch;
 
 import com.xingmot.gtmadvancedhatch.api.NoConsumeNotifiabbleLaserContainer;
-import com.xingmot.gtmadvancedhatch.api.adaptivenet.AdaptiveConstants;
-import com.xingmot.gtmadvancedhatch.api.adaptivenet.AdaptiveSlave;
-import com.xingmot.gtmadvancedhatch.api.adaptivenet.IFrequency;
-import com.xingmot.gtmadvancedhatch.api.adaptivenet.INetEndpoint;
+import com.xingmot.gtmadvancedhatch.api.adaptivenet.*;
 import com.xingmot.gtmadvancedhatch.common.data.AHItems;
 import com.xingmot.gtmadvancedhatch.common.data.MachinesConstants;
 import com.xingmot.gtmadvancedhatch.common.data.TagConstants;
@@ -78,13 +75,15 @@ public class AdaptiveNetLaserHatchPartMachine extends NetLaserHatchPartMachine i
     private int amps = 1;
     @Persisted
     private int setTier = 0;
-
     private TickableSubscription updEnergySubs;
     private TickableSubscription updNet;
+    private final String special;
 
     public AdaptiveNetLaserHatchPartMachine(IMachineBlockEntity holder, IO io) {
         super(holder, 0, io, 1);
         this.adaptiveSlave = new AdaptiveSlave(this, AdaptiveConstants.NET_TYPE_ENERGY);
+        if (io == IO.IN) special = AdaptiveConstants.NET_ENERGY_SPECIAL_INPUT_LASER;
+        else special = AdaptiveConstants.NET_ENERGY_SPECIAL_OUTPUT_LASER;
     }
 
     @Override
@@ -325,6 +324,7 @@ public class AdaptiveNetLaserHatchPartMachine extends NetLaserHatchPartMachine i
         boolean flag = false;
         CompoundTag key = (CompoundTag) tag.get("net_key");
         if (key != null && !key.isEmpty()) {
+            ActiveAdaptiveNetStatistics.decrement(AdaptiveConstants.NET_TYPE_ENERGY, this.frequency, this.net_uuid, special, this.getBlockPos());
             this.frequency = key.getLong(TagConstants.ADAPTIVE_NET_FREQUENCY);
             this.net_uuid = key.getUUID(TagConstants.ADAPTIVE_NET_UUID);
             flag = true;
@@ -341,6 +341,8 @@ public class AdaptiveNetLaserHatchPartMachine extends NetLaserHatchPartMachine i
             else this.energyContainer.resetBasicInfo(this.maxEnergy, this.voltage, this.amps, 0L, 0L);
             updateMultiMachine();
         }
+        if (this.isConnect)
+            ActiveAdaptiveNetStatistics.increment(AdaptiveConstants.NET_TYPE_ENERGY, this.frequency, this.net_uuid, special, this.getBlockPos());
         return flag;
     }
 

@@ -86,23 +86,15 @@ public class FormatUtil {
             spaceWidth = font.width(" ");
         }
         // 计算可以容纳的分隔符数量
-        int totalSpacerWidth = spaceLength - spaceWidth; // 预留一个空格的宽度
-        if (totalSpacerWidth <= 0) {
-            a[0] = body;
-            return Component.translatable(labelKey, (Object[]) a);
-        }
-
+        int totalSpacerWidth = spaceLength - 2 * spaceWidth; // 预留2个空格的宽度
         int spacerCount = totalSpacerWidth / dotWidth;
-        if (spacerCount <= 0) {
-            a[0] = body;
-            return Component.translatable(labelKey, (Object[]) a);
-        }
+        if (totalSpacerWidth <= 0 || spacerCount <= 0) return tmp;
 
         var separatorComponent = Component.literal("·".repeat(spacerCount))
                 .setStyle(Style.EMPTY.withFont(new ResourceLocation("gtmadvancedhatch", "separator_font")));
-        var spacerComponent = Component.literal("")
+        var spacerComponent = Component.literal(" ")
                 .append(separatorComponent)
-                .append(Component.literal("  "));
+                .append(Component.literal(" "));
         a[0] = spacerComponent.append(body);
         return Component.translatable(labelKey, (Object[]) a);
     }

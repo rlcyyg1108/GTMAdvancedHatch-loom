@@ -4,6 +4,7 @@ import com.xingmot.gtmadvancedhatch.api.adaptivenet.*;
 import com.xingmot.gtmadvancedhatch.common.data.AHItems;
 import com.xingmot.gtmadvancedhatch.common.data.MachinesConstants;
 import com.xingmot.gtmadvancedhatch.common.data.TagConstants;
+import com.xingmot.gtmadvancedhatch.util.AHFormattingUtil;
 import com.xingmot.gtmadvancedhatch.util.AHUtil;
 
 import com.gregtechceu.gtceu.api.GTValues;
@@ -22,6 +23,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
@@ -30,7 +32,9 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -70,6 +74,7 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
     // 是否被覆盖（当存在已经注册的终端时被覆盖）
     @Getter
     @Persisted
+    @DescSynced
     protected boolean isSlave = false;
     // 是否迁移模式（启用时更改频道和uuid，同网络适配仓会自动迁移至新频道和uuid
     @Getter
@@ -78,25 +83,30 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
     protected boolean isAutoRebind = true;
     // 适配网络所属玩家/队伍的uuid，默认为公用
     @Persisted
+    @DescSynced
     protected UUID uuid = MachinesConstants.UUID_ZERO;
     // 适配网络频率
     @Getter
     @Persisted
+    @DescSynced
     protected long frequency = 0L;
     AdaptiveMaster adaptiveMaster;
     AdaptiveSlave adaptiveSlave;
-    // 这里用于存放四类电网仓的适配数据
+    // 这里用于存放四类电网仓的适配数据 这玩意不支持客户端同步，因此手动同步数据
     protected final AdaptiveData[] adaptiveData = new AdaptiveData[4];
     // 四个槽位的存储电网系列仓室(动力仓、能源仓、激光源仓、激光靶仓）以及槽位变化监听
     @Getter
     @Persisted
     protected final NotifiableItemStackHandler[] netEnergyInventory = new NotifiableItemStackHandler[4];
+    @DescSynced
+    public int[] stasticNum = new int[4];
     @Nullable
     protected ISubscription[] inventorySubs = new ISubscription[4];
     private TickableSubscription updNet;
 
     public AdaptiveNetEnergyTerminal(IMachineBlockEntity holder) {
         super(holder);
+        initNetEnergyInventory();
         initAdaptiveData();
         this.adaptiveMaster = new AdaptiveMaster(this, NET_TYPE_ENERGY);
         this.adaptiveSlave = new AdaptiveSlave(this, NET_TYPE_ENERGY);
@@ -108,11 +118,14 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
     }
 
     // region 四个槽位
-    private void initAdaptiveData() {
+    private void initNetEnergyInventory() {
         netEnergyInventory[0] = (new NotifiableItemStackHandler(this, 1, IO.BOTH, IO.NONE)).setFilter(AdaptiveTerminalBehaviour::isNetEnergyOutputHatch);
         netEnergyInventory[1] = (new NotifiableItemStackHandler(this, 1, IO.BOTH, IO.NONE)).setFilter(AdaptiveTerminalBehaviour::isNetEnergyInputHatch);
         netEnergyInventory[2] = (new NotifiableItemStackHandler(this, 1, IO.BOTH, IO.NONE)).setFilter(AdaptiveTerminalBehaviour::isNetLaserOutputHatch);
         netEnergyInventory[3] = (new NotifiableItemStackHandler(this, 1, IO.BOTH, IO.NONE)).setFilter(AdaptiveTerminalBehaviour::isNetLaserInputHatch);
+    }
+
+    private void initAdaptiveData() {
         adaptiveData[0] = new AdaptiveData(IO.OUT, 8L, 1, 0);
         adaptiveData[1] = new AdaptiveData(IO.IN, 8L, 1, 0);
         adaptiveData[2] = new AdaptiveData(IO.OUT, 8L, 256, 0);
@@ -380,7 +393,7 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
     @Override
     public Supplier<? extends CompoundTag> getData() {
         CompoundTag tag = new CompoundTag();
-        if (isAutoRebind)
+        if (isAutoRebind && frequency != 0L)
             tag.put("net_key", new NetKey(NET_TYPE_ENERGY, this.frequency, this.uuid).toTag());
         tag.put("data0", this.adaptiveData[0].toTag());
         tag.put("data1", this.adaptiveData[1].toTag());
@@ -393,7 +406,7 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
     public boolean encodeData(CompoundTag tag) {
         boolean flag = false;
         CompoundTag key = (CompoundTag) tag.get("net_key");
-        if (key != null && !key.isEmpty()) {
+        if (isSlave && key != null && !key.isEmpty()) {
             this.frequency = key.getLong(TagConstants.ADAPTIVE_NET_FREQUENCY);
             this.uuid = key.getUUID(TagConstants.ADAPTIVE_NET_UUID);
             flag = true;
@@ -412,6 +425,101 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
 
     // endregion
     // =============================== GUI ==================================
+    public final ComponentPanelWidget custom = new ComponentPanelWidget(4, 5, components -> {}) {
+
+        @Override
+        public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+            // 需要保留原有的id为1的方法用于初始化（不然连初始化也要重写
+            super.readUpdateInfo(id, buffer);
+            if (id == 2) {
+                lastText.clear();
+                CompoundTag tag = buffer.readNbt();
+                adaptiveData[0] = AdaptiveData.fromTag((CompoundTag) tag.get("data0"));
+                adaptiveData[1] = AdaptiveData.fromTag((CompoundTag) tag.get("data1"));
+                adaptiveData[2] = AdaptiveData.fromTag((CompoundTag) tag.get("data2"));
+                adaptiveData[3] = AdaptiveData.fromTag((CompoundTag) tag.get("data3"));
+                stasticNum = buffer.readVarIntArray();
+                if (frequency == 0)
+                    lastText.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency")
+                            .withStyle(ChatFormatting.DARK_GREEN)
+                            .append(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency.off")
+                                    .withStyle(ChatFormatting.YELLOW)));
+                else {
+                    MutableComponent freq_component = Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency")
+                            .append(String.valueOf(frequency));
+                    if (isSlave)
+                        freq_component.kjs$hover(Component.translatable("gtmadvancedhatch.machine.adaptivee.fail")
+                                .withStyle(ChatFormatting.BLUE)).withStyle(ChatFormatting.BLUE);
+                    else
+                        freq_component.withStyle(ChatFormatting.DARK_GREEN);
+                    lastText.add(freq_component);
+                }
+                if (uuid.equals(MachinesConstants.UUID_ZERO))
+                    lastText.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", Component.translatable("gtmadvancedhatch.gui.binduuid.everyone"))
+                            .withStyle(ChatFormatting.AQUA));
+                else
+                    lastText.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", AHUtil.getTeamName(holder.level(), uuid))
+                            .withStyle(ChatFormatting.AQUA));
+                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("动力仓：")
+                        .withStyle(ChatFormatting.GREEN), Component.literal(adaptiveData[0].amps + "A  " + GTValues.VNF[adaptiveData[0].setTier] + " (" + adaptiveData[0].voltage + ")"), 220, "·"));
+                lastText.add(Component.empty()
+                        .append(Component.literal("  -")
+                                .withStyle(ChatFormatting.GREEN))
+                        .append(Component.literal("已加载："))
+                        .append(Component.literal(String.valueOf(stasticNum[0]))
+                                .withStyle(ChatFormatting.AQUA))
+                        .append(" 个"));
+                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("能源仓：")
+                        .withStyle(ChatFormatting.RED), Component.literal(adaptiveData[1].amps + "A  " + GTValues.VNF[adaptiveData[1].setTier] + " (" + adaptiveData[1].voltage + ")"), 220, "·"));
+                lastText.add(Component.empty()
+                        .append(Component.literal("  -")
+                                .withStyle(ChatFormatting.RED))
+                        .append(Component.literal("已加载："))
+                        .append(Component.literal(String.valueOf(stasticNum[1]))
+                                .withStyle(ChatFormatting.AQUA))
+                        .append(" 个"));
+                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("激光源仓：")
+                        .withStyle(ChatFormatting.DARK_GREEN), Component.literal(adaptiveData[2].amps + "A  " + GTValues.VNF[adaptiveData[2].setTier] + " (" + adaptiveData[2].voltage + ")"), 220, "·"));
+                lastText.add(Component.empty()
+                        .append(Component.literal("  -")
+                                .withStyle(ChatFormatting.DARK_GREEN))
+                        .append(Component.literal("已加载："))
+                        .append(Component.literal(String.valueOf(stasticNum[2]))
+                                .withStyle(ChatFormatting.AQUA))
+                        .append(" 个"));
+                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("激光靶仓：")
+                        .withStyle(ChatFormatting.DARK_RED), Component.literal(adaptiveData[3].amps + "A  " + GTValues.VNF[adaptiveData[3].setTier] + " (" + adaptiveData[3].voltage + ")"), 220, "·"));
+                lastText.add(Component.empty()
+                        .append(Component.literal("  -")
+                                .withStyle(ChatFormatting.DARK_RED))
+                        .append(Component.literal("已加载："))
+                        .append(Component.literal(String.valueOf(stasticNum[3]))
+                                .withStyle(ChatFormatting.AQUA))
+                        .append(" 个"));
+                formatDisplayText();
+                updateComponentTextSize();
+            }
+        }
+
+        @Override
+        public void detectAndSendChanges() {
+            stasticNum[0] = ActiveAdaptiveNetStatistics.getNum(NET_TYPE_ENERGY, frequency, uuid, AdaptiveConstants.NET_ENERGY_SPECIAL_OUTPUT_HATCH);
+            stasticNum[1] = ActiveAdaptiveNetStatistics.getNum(NET_TYPE_ENERGY, frequency, uuid, AdaptiveConstants.NET_ENERGY_SPECIAL_INPUT_HATCH);
+            stasticNum[2] = ActiveAdaptiveNetStatistics.getNum(NET_TYPE_ENERGY, frequency, uuid, AdaptiveConstants.NET_ENERGY_SPECIAL_OUTPUT_LASER);
+            stasticNum[3] = ActiveAdaptiveNetStatistics.getNum(NET_TYPE_ENERGY, frequency, uuid, AdaptiveConstants.NET_ENERGY_SPECIAL_INPUT_LASER);
+            // 手动同步服务端与客户端数据（考虑到adaptiveData无法被@DescSync同步，故使用nbt
+            writeUpdateInfo(2, buf -> {
+                CompoundTag tag = new CompoundTag();
+                tag.put("data0", adaptiveData[0].toTag());
+                tag.put("data1", adaptiveData[1].toTag());
+                tag.put("data2", adaptiveData[2].toTag());
+                tag.put("data3", adaptiveData[3].toTag());
+                buf.writeNbt(tag);
+                buf.writeVarIntArray(stasticNum);
+            });
+        }
+    };
+
     // region GUI样板代码
     @Override
     public Widget createUIWidget() {
@@ -419,36 +527,9 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
         group.addWidget(
                 new DraggableScrollableWidgetGroup(4, 4, 220 + 8, 117)
                         .setBackground(GuiTextures.DISPLAY)
-                        .addWidget((new ComponentPanelWidget(4, 5, this::addDisplayText))
-                                .setMaxWidthLimit(220)))
+                        .addWidget(custom.setMaxWidthLimit(220)))
                 .setBackground(GuiTextures.BACKGROUND_INVERSE);
         return group;
-    }
-
-    // TODO 替换为本地化键
-    private void addDisplayText(List<Component> textList) {
-        if (frequency == 0)
-            textList.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency").withStyle(ChatFormatting.DARK_GREEN).append(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency.off").withStyle(ChatFormatting.YELLOW)));
-        else
-            textList.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency").append(String.valueOf(frequency)).withStyle(ChatFormatting.DARK_GREEN));
-        if (isSlave && frequency != 0)
-            textList.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.fail").withStyle(ChatFormatting.RED));
-        if (this.uuid.equals(MachinesConstants.UUID_ZERO))
-            textList.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", Component.translatable("gtmadvancedhatch.gui.binduuid.everyone")).withStyle(ChatFormatting.AQUA));
-        else
-            textList.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", AHUtil.getTeamName(this.holder.level(), this.uuid)).withStyle(ChatFormatting.AQUA));
-        textList.add(Component.literal("动力仓：----------------------"));
-        textList.add(Component.literal(adaptiveData[0].amps + "A  " + GTValues.VNF[adaptiveData[0].setTier] + " (" + adaptiveData[0].voltage + ")"));
-        textList.add(Component.literal("已加载：???个"));
-        textList.add(Component.literal("能源仓：----------------------"));
-        textList.add(Component.literal(adaptiveData[1].amps + "A  " + GTValues.VNF[adaptiveData[1].setTier] + " (" + adaptiveData[1].voltage + ")"));
-        textList.add(Component.literal("已加载：???个"));
-        textList.add(Component.literal("激光源仓：---------------------"));
-        textList.add(Component.literal(adaptiveData[2].amps + "A  " + GTValues.VNF[adaptiveData[2].setTier] + " (" + adaptiveData[2].voltage + ")"));
-        textList.add(Component.literal("已加载：???个"));
-        textList.add(Component.literal("激光靶仓：---------------------"));
-        textList.add(Component.literal(adaptiveData[3].amps + "A  " + GTValues.VNF[adaptiveData[3].setTier] + " (" + adaptiveData[3].voltage + ")"));
-        textList.add(Component.literal("已加载：???个"));
     }
 
     // endregion

@@ -16,7 +16,7 @@ public record NetKey(@Nonnull String type, long freq, UUID owner) {
 
     @Override
     public String toString() {
-        return (Strings.isNullOrEmpty(type) ? NET_TYPE_EMPTY : type) + "#" + freq + "@" + owner;
+        return "$" + (Strings.isNullOrEmpty(type) ? NET_TYPE_EMPTY : type) + "#" + freq + "@" + owner;
     }
 
     public CompoundTag toTag() {

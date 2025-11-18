@@ -129,13 +129,14 @@ public class AdaptiveNetProvider extends CapabilityBlockProvider<IAdaptiveNetCap
         if (!(blockEntity instanceof MetaMachineBlockEntity metaMachineBlockEntity)) return;
         var metaMachine = metaMachineBlockEntity.getMetaMachine();
         if (capData.hasUUID("UUID") && metaMachine instanceof AdaptiveNetEnergyTerminal) {
+            tooltips(tooltip, capData);
             var isAutoRebind = capData.getBoolean("AutoRebind");
             var isSlave = capData.getBoolean("IsSlave");
+            var frequency = capData.getLong("Frequency");
             Component c = isAutoRebind ? Component.translatable("gtmadvancedhatch.gui.auto_rebind.yes").withStyle(ChatFormatting.DARK_GREEN) : Component.translatable("gtmadvancedhatch.gui.auto_rebind.no").withStyle(ChatFormatting.RED);
-            tooltips(tooltip, capData);
             tooltip.add(Component.translatable("gtmadvancedhatch.gui.auto_rebind").append(c));
-            if (isSlave)
-                tooltip.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.fail").withStyle(ChatFormatting.RED));
+            if (frequency != 0 && isSlave)
+                tooltip.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.fail").withStyle(ChatFormatting.BLUE));
         } else if (capData.hasUUID("UUID") && metaMachine instanceof AdaptiveNetEnergyHatchPartMachine || metaMachine instanceof AdaptiveNetLaserHatchPartMachine) {
             tooltips(tooltip, capData);
         }

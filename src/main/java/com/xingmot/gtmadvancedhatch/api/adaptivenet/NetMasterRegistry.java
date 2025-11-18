@@ -16,27 +16,28 @@ import org.jetbrains.annotations.Nullable;
  * 参考自 ExtendedAE Plus by.GaLicn
  * - 修改0频率也能注册，方便统计数量
  */
-public final class NetMasterRegistry {
+public class NetMasterRegistry {
 
     private NetMasterRegistry() {}
 
     // 反向映射，用于处理迁移操作
-    private static final Map<NetKey, WeakReference<INetEndpoint>> MASTERS = new HashMap<>();
-    private static final Map<NetKey, Long> MASTERS_COUNT = new HashMap<>();
+    public static final Map<NetKey, WeakReference<INetEndpoint>> MASTERS = new HashMap<>();
 
-    public static synchronized boolean register(@Nonnull String type, long frequency, @Nullable UUID uuid, INetEndpoint endpoint) {
-        if (frequency == 0) return false;
+    public static synchronized boolean hasRegistered(@Nonnull String type, long frequency, @Nullable UUID uuid) {
         final NetKey netKey = new NetKey(type, frequency, uuid);
 
         cleanupIfCleared(netKey);
         var existing = MASTERS.get(netKey);
         var existingVal = existing == null ? null : existing.get();
-        if (existingVal != null && !existingVal.isEndpointRemoved()) {
-            // 同维度同频率同所有者已经有主端
-            return false;
-        }
+        // 同维度同频率同所有者已经有主端时返回null
+        return existingVal != null && !existingVal.isEndpointRemoved();
+    }
+
+    public static synchronized boolean register(@Nonnull String type, long frequency, @Nullable UUID uuid, INetEndpoint endpoint) {
+        if (frequency == 0) return false;
+        if (hasRegistered(type, frequency, uuid)) return false;
+        final NetKey netKey = new NetKey(type, frequency, uuid);
         MASTERS.put(netKey, new WeakReference<>(endpoint));
-        MASTERS_COUNT.put(netKey, 0L);
         return true;
     }
 
@@ -49,7 +50,6 @@ public final class NetMasterRegistry {
             var cur = ref.get();
             if (cur == null || cur == endpoint) {
                 MASTERS.remove(netKey);
-                MASTERS_COUNT.remove(netKey);
             }
         }
     }
@@ -63,22 +63,6 @@ public final class NetMasterRegistry {
         return ref == null ? null : ref.get();
     }
 
-    public static synchronized Long getCount(@Nonnull String type, long frequency, @Nullable UUID uuid) {
-        if (frequency == 0) return 0L;
-        final NetKey netKey = new NetKey(type, frequency, uuid);
-
-        cleanupIfCleared(netKey);
-        return MASTERS_COUNT.get(netKey);
-    }
-
-    public static synchronized void addCount(@Nonnull String type, long frequency, @Nullable UUID uuid, int i) {
-        if (frequency == 0) return;
-        final NetKey netKey = new NetKey(type, frequency, uuid);
-
-        cleanupIfCleared(netKey);
-        MASTERS_COUNT.put(netKey, MASTERS_COUNT.get(netKey) + i);
-    }
-
     /** 主要是方便终端和适配仓一起用 */
     public static synchronized CompoundTag getData(@Nonnull String type, long frequency, @Nullable UUID uuid) {
         if (frequency == 0) return null;
@@ -90,11 +74,10 @@ public final class NetMasterRegistry {
         return null;
     }
 
-    private static void cleanupIfCleared(NetKey netKey) {
+    public static void cleanupIfCleared(NetKey netKey) {
         var ref = MASTERS.get(netKey);
         if (ref != null && ref.get() == null) {
             MASTERS.remove(netKey);
-            MASTERS_COUNT.remove(netKey);
         }
     }
 }
