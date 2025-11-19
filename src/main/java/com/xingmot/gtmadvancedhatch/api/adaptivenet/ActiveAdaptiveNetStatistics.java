@@ -42,7 +42,7 @@ public class ActiveAdaptiveNetStatistics {
         if (frequency == 0) return false;
         if (existOrCleared(type, frequency, uuid, special)) {
             StatisticsKey statisticsKey = new StatisticsKey(type, frequency, uuid, special);
-            if (activeAdaptiveNetSet.containsKey(statisticsKey) && activeAdaptiveNetSet.get(statisticsKey) instanceof Set<Vec3> set) {
+            if (activeAdaptiveNetSet.containsKey(statisticsKey) && activeAdaptiveNetSet.get(statisticsKey) instanceof HashSet<Vec3> set) {
                 set.add(Vec3.atLowerCornerOf(location));
             } else {
                 HashSet<Vec3> set = new HashSet<>();
@@ -94,8 +94,8 @@ public class ActiveAdaptiveNetStatistics {
         public boolean equals(Object object) {
             if (this == object) {
                 return true;
-            } else if (object instanceof StatisticsKey(String type1, long freq1, UUID owner1, String s)) {
-                return type1.equals(this.type) && freq1 == this.freq && owner1.equals(this.owner) && s.equals(this.special);
+            } else if (object instanceof StatisticsKey st) {
+                return st.type.equals(this.type) && st.freq == this.freq && st.owner.equals(this.owner) && st.special.equals(this.special);
             } else {
                 return false;
             }
