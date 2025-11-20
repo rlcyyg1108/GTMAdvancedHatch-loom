@@ -8,7 +8,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,18 +22,6 @@ public class LockStackSlotWidget extends SlotWidget {
 
     protected IGuiTexture occupiedTexture;
 
-    public LockStackSlotWidget() {}
-
-    public LockStackSlotWidget(
-                               Container inventory,
-                               int slotIndex,
-                               int xPosition,
-                               int yPosition,
-                               boolean canTakeItems,
-                               boolean canPutItems) {
-        super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
-    }
-
     public LockStackSlotWidget(
                                IItemTransfer itemHandler,
                                int slotIndex,
@@ -43,15 +30,6 @@ public class LockStackSlotWidget extends SlotWidget {
                                boolean canTakeItems,
                                boolean canPutItems) {
         super(itemHandler, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
-    }
-
-    public LockStackSlotWidget(
-                               IItemTransfer itemHandler, int slotIndex, int xPosition, int yPosition) {
-        super(itemHandler, slotIndex, xPosition, yPosition);
-    }
-
-    public LockStackSlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition) {
-        super(inventory, slotIndex, xPosition, yPosition);
     }
 
     // =============================
@@ -64,18 +42,19 @@ public class LockStackSlotWidget extends SlotWidget {
 
     @Override
     protected Slot createSlot(IItemTransfer itemHandler, int index) {
-        return new MyWidgetSlotItemTransfer(itemHandler, index, 0, 0);
+        return new MyWidgetItemTransfer(itemHandler, index, 0, 0);
     }
 
-    public class MyWidgetSlotItemTransfer extends WidgetSlotItemTransfer {
+    public class MyWidgetItemTransfer extends WidgetSlotItemTransfer implements IUnlimitedStack {
 
-        public MyWidgetSlotItemTransfer(IItemTransfer itemHandler, int index, int xPosition, int yPosition) {
+        public MyWidgetItemTransfer(IItemTransfer itemHandler, int index, int xPosition, int yPosition) {
             super(itemHandler, index, xPosition, yPosition);
         }
 
         @Override
         public int getMaxStackSize(@Nonnull ItemStack stack) {
-            return this.getItemHandler().getSlotLimit(this.getSlotIndex()) * stack.getMaxStackSize() / 64;
+            int limit = this.getItemHandler().getSlotLimit(this.getSlotIndex());
+            return Math.min(limit, stack.getMaxStackSize() * (limit / 64));
         }
     }
 

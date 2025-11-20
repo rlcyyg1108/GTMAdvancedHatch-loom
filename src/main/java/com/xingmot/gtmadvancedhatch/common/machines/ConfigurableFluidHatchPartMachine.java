@@ -68,7 +68,7 @@ public class ConfigurableFluidHatchPartMachine extends FluidHatchPartMachine imp
     }
 
     public static long getTankCapacity(long initialCapacity, int tier) {
-        if (tier >= 3) return AHUtil.multiplyWithBounds(initialCapacity, (1L << (4 * Math.min(13, tier - 1))));
+        if (tier >= 3) return AHUtil.multiplyWithLongBounds(initialCapacity, (1L << (4 * Math.min(13, tier - 1))));
         return initialCapacity * (1L << tier);
     }
 

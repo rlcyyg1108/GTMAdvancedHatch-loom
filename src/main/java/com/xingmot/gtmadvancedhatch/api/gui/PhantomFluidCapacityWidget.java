@@ -112,7 +112,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
             if (GTUtil.isAltDown()) {
                 multi *= 4;
             }
-            return wheel > 0 ? Math.min(maxCapacity, AHUtil.multiplyWithBounds(this.getAmount(), multi)) : AHUtil.divWithBounds(this.getAmount(), multi);
+            return wheel > 0 ? Math.min(maxCapacity, AHUtil.multiplyWithLongBounds(this.getAmount(), multi)) : AHUtil.divWithLongBounds(this.getAmount(), multi);
         }
         long add = wheel;
         if (GTUtil.isShiftDown()) {
@@ -125,7 +125,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         if (!GTUtil.isAltDown()) {
             add *= 1000;
         }
-        return Math.min(maxCapacity, AHUtil.addWithBounds(this.getAmount(), add));
+        return Math.min(maxCapacity, AHUtil.addWithLongBounds(this.getAmount(), add));
     }
 
     @Override

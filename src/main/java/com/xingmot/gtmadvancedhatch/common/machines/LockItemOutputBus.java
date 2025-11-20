@@ -2,6 +2,7 @@ package com.xingmot.gtmadvancedhatch.common.machines;
 
 import com.xingmot.gtmadvancedhatch.api.LockStackTransfer;
 import com.xingmot.gtmadvancedhatch.api.gui.LockStackSlotWidget;
+import com.xingmot.gtmadvancedhatch.util.AHUtil;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -90,9 +91,20 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
         return getLockItemOutputBusSlot(getTier());
     }
 
+    public static int getLockItemOutputBusSlotLimit(int tier) {
+        if (tier >= 3) return AHUtil.multiplyWithIntegerBounds(64, (1 << Math.min(13, tier - 2)));
+        return 64;
+    }
+
     protected NotifiableItemStackHandler createInventory(IO handlerIO, IO capIO, Object... args) {
         // 重写，不知道为什么不重写就用不了
-        return new NotifiableItemStackHandler(this, getInventorySize(), handlerIO, capIO, LockStackTransfer::new) {
+        return new NotifiableItemStackHandler(this, getInventorySize(), handlerIO, capIO,
+                integer -> new LockStackTransfer(integer, getLockItemOutputBusSlotLimit(this.tier))) {
+
+            @Override
+            public boolean canCapOutput() {
+                return true;
+            }
 
             @Override
             public boolean isEmpty() {

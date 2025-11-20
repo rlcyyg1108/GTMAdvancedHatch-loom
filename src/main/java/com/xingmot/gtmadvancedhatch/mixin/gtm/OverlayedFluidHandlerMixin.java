@@ -22,7 +22,7 @@ public class OverlayedFluidHandlerMixin {
     @Redirect(remap = false,
               method = "<init>",
               at = @At(value = "INVOKE", target = "Lcom/lowdragmc/lowdraglib/misc/FluidStorage;setFluid(Lcom/lowdragmc/lowdraglib/side/fluid/FluidStack;)V"))
-    public void setFluidMixin(FluidStorage storage, FluidStack fluid, FluidTransferList tank, @Local int i) {
+    public void setFluidMixin(FluidStorage storage, FluidStack fluid, FluidTransferList tank, @Local(name = "i") int i) {
         storage.setValidator(fluidStack -> tank.isFluidValid(i, fluidStack));
         storage.setFluid(fluid);
     }

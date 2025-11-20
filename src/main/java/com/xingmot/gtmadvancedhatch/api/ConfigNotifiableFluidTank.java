@@ -39,18 +39,18 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
     @Persisted
     protected boolean isLockedEmptySlot;
 
-    public ConfigNotifiableFluidTank(MetaMachine machine, int slots, long capacity, IO io, IO capabilityIO) {
-        super(machine, slots, capacity, io, capabilityIO);
+    public ConfigNotifiableFluidTank(MetaMachine machine, int slots, long maxCapacity, IO io, IO capabilityIO) {
+        super(machine, slots, maxCapacity, io, capabilityIO);
         this.lockedFluids = new FluidStorage[slots];
         this.tankCapacity = new long[slots];
-        Arrays.fill(this.tankCapacity, capacity);
+        Arrays.fill(this.tankCapacity, maxCapacity);
         for (int i = 0; i < slots; i++) {
             lockedFluids[i] = new FluidStorage(tankCapacity[i]);
         }
     }
 
-    public ConfigNotifiableFluidTank(MetaMachine machine, int slots, long capacity, IO io) {
-        this(machine, slots, capacity, io, io);
+    public ConfigNotifiableFluidTank(MetaMachine machine, int slots, long maxCapacity, IO io) {
+        this(machine, slots, maxCapacity, io, io);
     }
 
     @Override

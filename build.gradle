@@ -94,8 +94,6 @@ loom {
             client()
             name "Client"
             runDir "run/client"
-            vmArgs "-XX:+AllowEnhancedClassRedefinition"
-            vmArgs "-Darchitectury.development=true"
             vmArgs "-Dneoforge.enabledGameTestNamespace=${propertyString('mod_id')}"
             programArgs "--username", "Player1"
         }
@@ -103,8 +101,6 @@ loom {
             server()
             name "Server"
             runDir "run/server"
-            vmArgs "-XX:+AllowEnhancedClassRedefinition"
-            vmArgs "-Darchitectury.development=true"
             vmArgs "-Dneoforge.enabledGameTestNamespace=${propertyString('mod_id')}"
         }
     }

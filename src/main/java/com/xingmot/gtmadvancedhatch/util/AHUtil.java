@@ -2,6 +2,7 @@ package com.xingmot.gtmadvancedhatch.util;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
@@ -25,7 +26,7 @@ public class AHUtil {
     }
 
     // region 》数学工具方法
-    public static long addWithBounds(long a, long b) {
+    public static long addWithLongBounds(long a, long b) {
         long result = a + b;
 
         // 检查正溢出
@@ -40,7 +41,7 @@ public class AHUtil {
         return result;
     }
 
-    public static long multiplyWithBounds(long a, long b) {
+    public static long multiplyWithLongBounds(long a, long b) {
         if (a == 0 || b == 0) return 0;
 
         long result = a * b;
@@ -57,7 +58,7 @@ public class AHUtil {
         return result;
     }
 
-    public static long divWithBounds(long a, long b) {
+    public static long divWithLongBounds(long a, long b) {
         if (b == 0) return a > 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
         long result = a / b;
         // 检查溢出
@@ -66,8 +67,41 @@ public class AHUtil {
         }
         return result;
     }
-    // endregion 1
+
+    public static int addWithIntegerBounds(int a, int b) {
+        long result = (long) a + b;
+        return (int) Math.max(Integer.MIN_VALUE, Math.min(result, Integer.MAX_VALUE));
+    }
+
+    public static int multiplyWithIntegerBounds(int a, int b) {
+        if (a == 0 || b == 0) return 0;
+        long result = (long) a * b;
+        return (int) Math.max(Integer.MIN_VALUE, Math.min(result, Integer.MAX_VALUE));
+    }
+
+    public static int divWithIntegerBounds(int a, int b) {
+        if (b == 0) return a > 0 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+        long result = (long) a / b;
+        // 检查溢出
+        if (a == Integer.MIN_VALUE && b == -1) {
+            return Integer.MAX_VALUE; // 特殊情况
+        }
+        return (int) result;
+    }
+    // endregion
     // region 》客户端工具方法
+
+    /**
+     * 根据字符串长度动态计算字体大小
+     * coded by PORTB from BiggerStacks(Licensed under GNU LGPL v3)
+     */
+    public static double calculateStringScale(Font font, String string) {
+        var width = font.width(string);
+        if (width < 16)
+            return 1.0;
+        else
+            return 16.0 / width;
+    }
 
     /**
      * 返回数量占容量的百分比字符串，以及颜色。（绿黄红）

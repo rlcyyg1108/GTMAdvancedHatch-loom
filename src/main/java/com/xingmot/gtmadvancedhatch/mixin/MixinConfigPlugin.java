@@ -29,6 +29,8 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
             return isModLoaded("buildinggadgets2");
         if (mixinClassName.contains("Monitor"))
             return isModLoaded("expatternprovider");
+        if (mixinClassName.contains("ItemRendererMixin")) // 防止重复注入
+            return !isModLoaded("biggerstacks");
         return true;
     }
 

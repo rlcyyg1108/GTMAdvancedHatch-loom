@@ -79,6 +79,11 @@ public class AHFormattingUtil {
         return NumberUtils.formatDouble(value / 1000.0) + " B";
     }
 
+    public static String formatLongToShort(long value, long min) {
+        if (value <= min) return String.valueOf(value);
+        return NumberUtils.formatDouble(value);
+    }
+
     public static @NotNull String formatNumberBy2(double number) {
         final String[] UNITS = { "", "K", "M", "G", "T", "P", "E", "Z", "Y", "B", "N", "D" };
         DecimalFormat df = new DecimalFormat("#.#");

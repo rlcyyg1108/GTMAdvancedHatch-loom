@@ -2,6 +2,7 @@
   "itemGroup.gtmadvancedhatch.base_tab": "高级仓室",
   "gtmadvancedhatch.machine.lock_item_output.tooltip": "§e启用自动输出时会在每格留下一个物品，且留存支持AE存储总线§r",
   "gtmadvancedhatch.machine.lock_item_output.tooltip2": "§8Jade显示的物品数量并不准确§r",
+  "gtmadvancedhatch.machine.lock_item_output.tooltip3": "每格槽位物品堆叠：",
   "gtmadvancedhatch.creative.energyContainerMultiplier": "能量存储倍增：",
   "gtmadvancedhatch.machine.net_energy_hatch.input.tooltip": "§e直接从网络消耗电量§r",
   "gtmadvancedhatch.machine.net_energy_hatch.target.tooltip": "§e直接从网络消耗大量电量§r",

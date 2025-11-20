@@ -63,6 +63,9 @@ public class AHMachines {
                     .tooltips(Component.translatable("gtmadvancedhatch.machine.lock_item_output.tooltip"),
                             Component.translatable("gtmadvancedhatch.machine.lock_item_output.tooltip2"),
                             Component.translatable("gtceu.machine.item_bus.export.tooltip"),
+                            Component.empty().append(Component.translatable("gtmadvancedhatch.machine.lock_item_output.tooltip3").withStyle(ChatFormatting.GOLD))
+                                    .append(Component.literal("%d (x%d)".formatted(LockItemOutputBus.getLockItemOutputBusSlotLimit(tier),
+                                            LockItemOutputBus.getLockItemOutputBusSlotLimit(tier) / 64))),
                             Component.translatable("gtceu.universal.tooltip.item_storage_capacity",
                                     getLockItemOutputBusSlot(tier)))
                     .compassNode("item_bus")
