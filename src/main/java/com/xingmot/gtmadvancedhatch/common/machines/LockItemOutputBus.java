@@ -55,8 +55,6 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
     @Persisted
     protected final NotifiableItemStackHandler inventory;
     @Getter
-    protected final ItemHandlerProxyRecipeTrait combinedInventory;
-    @Getter
     @Persisted
     private final NotifiableItemStackHandler outerInventory;
     @Nullable
@@ -70,13 +68,12 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
     public LockItemOutputBus(IMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier, IO.OUT);
         // 创建两个同样大小的存储空间，用于隔离输出
-        // 第一个IO参数表示作为机器的输入还是输出
+        // 第一个IO参数表示作为机器配方的输入输出
         // 第二个IO参数，IO.OUT 表示能被外部物流存取，也能被ME存储总线识别，IO.IN则会阻止外部抽取和识别
-        // 姑且称为外存inventory用于与外界管道或ME存储总线进行交互，数量为对应格子-1
-        // 姑且称为内存trueInventory则是实际存储，玩家可以放入取出
+        // inventory用于与管道或ME存储总线进行交互，数量为对应格子-1
+        // outerInventory则是实际存储，玩家可以放入取出
         this.inventory = createInventory(IO.NONE, IO.OUT, args);
         this.outerInventory = createInventory(IO.OUT, IO.NONE, args);
-        this.combinedInventory = createCombinedItemHandler(IO.OUT);
     }
 
     //////////////////////////////////////
@@ -100,11 +97,6 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
         // 重写，不知道为什么不重写就用不了
         return new NotifiableItemStackHandler(this, getInventorySize(), handlerIO, capIO,
                 integer -> new LockStackTransfer(integer, getLockItemOutputBusSlotLimit(this.tier))) {
-
-            @Override
-            public boolean canCapOutput() {
-                return true;
-            }
 
             @Override
             public boolean isEmpty() {
@@ -133,8 +125,6 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
         }
         inventorySubs = getInventory().addChangedListener(this::updateInventorySubscription);
         trueInventorySubs = getOuterInventory().addChangedListener(this::updateOuterInventorySubscription);
-
-        combinedInventory.recomputeEnabledState();
     }
 
     @Override
@@ -174,7 +164,6 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
     @Override
     public void setDistinct(boolean isDistinct) {
         getInventory().setDistinct(isDistinct);
-        combinedInventory.setDistinct(isDistinct);
     }
 
     //////////////////////////////////////
