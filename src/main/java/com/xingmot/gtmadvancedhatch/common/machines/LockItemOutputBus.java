@@ -1,6 +1,6 @@
 package com.xingmot.gtmadvancedhatch.common.machines;
 
-import com.xingmot.gtmadvancedhatch.api.LockStackTransfer;
+import com.xingmot.gtmadvancedhatch.api.MutableLimitAndFilterStackTransfer;
 import com.xingmot.gtmadvancedhatch.api.gui.LockStackSlotWidget;
 import com.xingmot.gtmadvancedhatch.util.AHUtil;
 
@@ -96,7 +96,7 @@ public class LockItemOutputBus extends TieredIOPartMachine implements IDistinctP
     protected NotifiableItemStackHandler createInventory(IO handlerIO, IO capIO, Object... args) {
         // 重写，不知道为什么不重写就用不了
         return new NotifiableItemStackHandler(this, getInventorySize(), handlerIO, capIO,
-                integer -> new LockStackTransfer(integer, getLockItemOutputBusSlotLimit(this.tier))) {
+                integer -> new MutableLimitAndFilterStackTransfer(integer, getLockItemOutputBusSlotLimit(this.tier))) {
 
             @Override
             public boolean isEmpty() {

@@ -201,7 +201,7 @@ public class AdaptiveNetLaserHatchPartMachine extends NetLaserHatchPartMachine i
             setNetUUID(MachinesConstants.UUID_ZERO);
             setFrequency(0L);
             if (LDLib.isClient())
-                player.sendSystemMessage(Component.translatable("gtmadvancedhatch.machine.adaptivee.clear_data"));
+                player.sendSystemMessage(Component.translatable("gtmadvancedhatch.machine.adaptive.clear_data"));
             return true;
         }
         return false;
@@ -238,7 +238,7 @@ public class AdaptiveNetLaserHatchPartMachine extends NetLaserHatchPartMachine i
         }
         setConnect(adaptiveSlave.setUUIDAndFrequency(this.net_uuid, this.frequency));
         if (LDLib.isClient() && player instanceof Player p)
-            p.displayClientMessage(Component.translatable("gtmadvancedhatch.machine.adaptivee.export_data", name), true);
+            p.displayClientMessage(Component.translatable("gtmadvancedhatch.machine.adaptive.export_data", name), true);
     }
 
     // =============================== IMachineLife ==================================

@@ -55,6 +55,74 @@ public class AHRecipes {
         }
         // endregion
 
+        // region 可配置物品仓
+        for (int tier : GTValues.tiersBetween(ULV, GTCEuAPI.isHighTier() ? MAX : UV)) {
+            if (tier >= EV) {
+                ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_item_bus_input_8x"))
+                        .outputItems(AHMachines.CONFIGURABLE_ITEM_INPUT_BUS_8X[tier], 1)
+                        .inputItems(RecipeConstants.HUGE_CHEST.get(tier), 4)
+                        .inputItems(GTMachines.ITEM_IMPORT_BUS[tier], 1)
+                        .inputItems(RecipeConstants.CONVEYOR_MODULE.get(tier), 2)
+                        .inputItems(RecipeConstants.ROBOT_ARM.get(tier), 2)
+                        .inputItems(RecipeConstants.SENSOR.get(tier), 1)
+                        .inputItems(RecipeConstants.EMITTER.get(tier), 1)
+                        .duration(300)
+                        .EUt(GTValues.VA[tier])
+                        .save(provider);
+                ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_item_bus_input_16x"))
+                        .outputItems(AHMachines.CONFIGURABLE_ITEM_INPUT_BUS_16X[tier], 1)
+                        .inputItems(RecipeConstants.HUGE_CHEST.get(tier), 8)
+                        .inputItems(GTMachines.ITEM_IMPORT_BUS[tier], 1)
+                        .inputItems(RecipeConstants.CONVEYOR_MODULE.get(tier), 4)
+                        .inputItems(RecipeConstants.ROBOT_ARM.get(tier), 4)
+                        .duration(400)
+                        .EUt(GTValues.VA[tier])
+                        .save(provider);
+
+                ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_item_bus_output_8x"))
+                        .outputItems(AHMachines.CONFIGURABLE_ITEM_OUTPUT_BUS_8X[tier], 1)
+                        .inputItems(RecipeConstants.HUGE_CHEST.get(tier), 4)
+                        .inputItems(GTMachines.ITEM_EXPORT_BUS[tier], 1)
+                        .inputItems(RecipeConstants.CONVEYOR_MODULE.get(tier), 2)
+                        .inputItems(RecipeConstants.ROBOT_ARM.get(tier), 2)
+                        .inputItems(RecipeConstants.SENSOR.get(tier), 1)
+                        .inputItems(RecipeConstants.EMITTER.get(tier), 1)
+                        .duration(300)
+                        .EUt(GTValues.VA[tier])
+                        .save(provider);
+                ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_item_bus_output_16x"))
+                        .outputItems(AHMachines.CONFIGURABLE_ITEM_OUTPUT_BUS_16X[tier], 1)
+                        .inputItems(RecipeConstants.HUGE_CHEST.get(tier), 8)
+                        .inputItems(GTMachines.ITEM_EXPORT_BUS[tier], 1)
+                        .inputItems(RecipeConstants.CONVEYOR_MODULE.get(tier), 4)
+                        .inputItems(RecipeConstants.ROBOT_ARM.get(tier), 4)
+                        .duration(400)
+                        .EUt(GTValues.VA[tier])
+                        .save(provider);
+            }
+            ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_item_bus_input_4x"))
+                    .outputItems(AHMachines.CONFIGURABLE_ITEM_INPUT_BUS_4X[tier], 1)
+                    .inputItems(RecipeConstants.HUGE_CHEST.get(tier), 2)
+                    .inputItems(GTMachines.ITEM_IMPORT_BUS[tier], 1)
+                    .inputItems(RecipeConstants.FIELD_GENERATOR.get(tier), 1)
+                    .inputItems(RecipeConstants.ROBOT_ARM.get(tier), 1)
+                    .inputItems(RecipeConstants.SENSOR.get(tier), 1)
+                    .duration(200)
+                    .EUt(GTValues.VA[tier])
+                    .save(provider);
+            ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_item_bus_output_4x"))
+                    .outputItems(AHMachines.CONFIGURABLE_ITEM_OUTPUT_BUS_4X[tier], 1)
+                    .inputItems(RecipeConstants.HUGE_CHEST.get(tier), 2)
+                    .inputItems(GTMachines.ITEM_EXPORT_BUS[tier], 1)
+                    .inputItems(RecipeConstants.FIELD_GENERATOR.get(tier), 1)
+                    .inputItems(RecipeConstants.ROBOT_ARM.get(tier), 1)
+                    .inputItems(RecipeConstants.SENSOR.get(tier), 1)
+                    .duration(200)
+                    .EUt(GTValues.VA[tier])
+                    .save(provider);
+        }
+        // endregion
+
         // region 可配置流体仓
         for (int tier : GTValues.tiersBetween(ULV, GTCEuAPI.isHighTier() ? MAX : UV)) {
             if (tier <= MV) {
@@ -138,6 +206,40 @@ public class AHRecipes {
                     .EUt(GTValues.VA[tier])
                     .save(provider);
         }
+        // endregion
+        for (int tier : GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UV)) {
+            ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(VN[tier].toLowerCase() + "configurable_dual_hatch_input"))
+                    .outputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_IMPORT_1P[tier], 1)
+                    .inputItems(AHMachines.CONFIGURABLE_ITEM_INPUT_BUS_8X[tier], 1)
+                    .inputItems(AHMachines.CONFIGURABLE_FLUID_HATCH_IMPORT_8X[tier], 1)
+                    .duration(300)
+                    .EUt(GTValues.VA[tier])
+                    .save(provider);
+            ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_dual_hatch_input_16p"))
+                    .outputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_IMPORT_16P[tier], 1)
+                    .inputItems(AHMachines.CONFIGURABLE_ITEM_INPUT_BUS_8X[tier], 16)
+                    .inputItems(AHMachines.CONFIGURABLE_FLUID_HATCH_IMPORT_8X[tier], 16)
+                    .duration(600)
+                    .EUt(GTValues.VA[tier])
+                    .save(provider);
+
+            ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_dual_hatch_output"))
+                    .outputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_EXPORT_1P[tier], 1)
+                    .inputItems(AHMachines.CONFIGURABLE_ITEM_OUTPUT_BUS_8X[tier], 1)
+                    .inputItems(AHMachines.CONFIGURABLE_FLUID_HATCH_EXPORT_8X[tier], 1)
+                    .duration(300)
+                    .EUt(GTValues.VA[tier])
+                    .save(provider);
+            ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_dual_hatch_output_16p"))
+                    .outputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_EXPORT_16P[tier], 1)
+                    .inputItems(AHMachines.CONFIGURABLE_ITEM_OUTPUT_BUS_8X[tier], 16)
+                    .inputItems(AHMachines.CONFIGURABLE_FLUID_HATCH_EXPORT_8X[tier], 16)
+                    .duration(600)
+                    .EUt(GTValues.VA[tier])
+                    .save(provider);
+        }
+        // region 可配置总成
+
         // endregion
 
         // region 电网仓

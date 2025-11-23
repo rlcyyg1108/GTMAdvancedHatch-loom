@@ -312,8 +312,8 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
             return false;
         } else if (itemStack.is(AHItems.TOOL_NET_DATA_STICK.asItem())) {
             itemStack.setTag(writeConfigToTag());
-            itemStack.setHoverName(Component.translatable("gtmadvancedhatch.machine.adaptivee.data_stick.name"));
-            player.displayClientMessage(Component.translatable("gtmadvancedhatch.machine.adaptivee.import_data"), true);
+            itemStack.setHoverName(Component.translatable("gtmadvancedhatch.machine.adaptive.data_stick.name"));
+            player.displayClientMessage(Component.translatable("gtmadvancedhatch.machine.adaptive.import_data"), true);
             return true;
         } else if (itemStack.is(Items.STICK)) {
             // TODO 逻辑：木棍左键显示当前uuid下的全部已使用频道
@@ -440,27 +440,27 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
                 adaptiveData[3] = AdaptiveData.fromTag((CompoundTag) tag.get("data3"));
                 stasticNum = buffer.readVarIntArray();
                 if (frequency == 0)
-                    lastText.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency")
+                    lastText.add(Component.translatable("gtmadvancedhatch.machine.adaptive.frequency")
                             .withStyle(ChatFormatting.DARK_GREEN)
-                            .append(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency.off")
+                            .append(Component.translatable("gtmadvancedhatch.machine.adaptive.frequency.off")
                                     .withStyle(ChatFormatting.YELLOW)));
                 else {
-                    MutableComponent freq_component = Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency")
+                    MutableComponent freq_component = Component.translatable("gtmadvancedhatch.machine.adaptive.frequency")
                             .append(String.valueOf(frequency));
                     if (isSlave)
-                        freq_component.kjs$hover(Component.translatable("gtmadvancedhatch.machine.adaptivee.fail")
+                        freq_component.kjs$hover(Component.translatable("gtmadvancedhatch.machine.adaptive.fail")
                                 .withStyle(ChatFormatting.BLUE)).withStyle(ChatFormatting.BLUE);
                     else
                         freq_component.withStyle(ChatFormatting.DARK_GREEN);
                     lastText.add(freq_component);
                 }
                 if (uuid.equals(MachinesConstants.UUID_ZERO))
-                    lastText.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", Component.translatable("gtmadvancedhatch.gui.binduuid.everyone"))
+                    lastText.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", Component.translatable("gtmadvancedhatch.gui.bind_uuid.everyone"))
                             .withStyle(ChatFormatting.AQUA));
                 else
                     lastText.add(Component.translatable("gtmthings.machine.wireless_energy_monitor.tooltip.0", AHUtil.getTeamName(holder.level(), uuid))
                             .withStyle(ChatFormatting.AQUA));
-                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("动力仓：")
+                lastText.add(AHFormattingUtil.getFormatWidthComponent(Component.literal("动力仓：")
                         .withStyle(ChatFormatting.GREEN), Component.literal(adaptiveData[0].amps + "A  " + GTValues.VNF[adaptiveData[0].setTier] + " (" + adaptiveData[0].voltage + ")"), 220, "·"));
                 lastText.add(Component.empty()
                         .append(Component.literal("  -")
@@ -469,7 +469,7 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
                         .append(Component.literal(String.valueOf(stasticNum[0]))
                                 .withStyle(ChatFormatting.AQUA))
                         .append(" 个"));
-                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("能源仓：")
+                lastText.add(AHFormattingUtil.getFormatWidthComponent(Component.literal("能源仓：")
                         .withStyle(ChatFormatting.RED), Component.literal(adaptiveData[1].amps + "A  " + GTValues.VNF[adaptiveData[1].setTier] + " (" + adaptiveData[1].voltage + ")"), 220, "·"));
                 lastText.add(Component.empty()
                         .append(Component.literal("  -")
@@ -478,7 +478,7 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
                         .append(Component.literal(String.valueOf(stasticNum[1]))
                                 .withStyle(ChatFormatting.AQUA))
                         .append(" 个"));
-                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("激光源仓：")
+                lastText.add(AHFormattingUtil.getFormatWidthComponent(Component.literal("激光源仓：")
                         .withStyle(ChatFormatting.DARK_GREEN), Component.literal(adaptiveData[2].amps + "A  " + GTValues.VNF[adaptiveData[2].setTier] + " (" + adaptiveData[2].voltage + ")"), 220, "·"));
                 lastText.add(Component.empty()
                         .append(Component.literal("  -")
@@ -487,7 +487,7 @@ public class AdaptiveNetEnergyTerminal extends MetaMachine implements IFancyUIMa
                         .append(Component.literal(String.valueOf(stasticNum[2]))
                                 .withStyle(ChatFormatting.AQUA))
                         .append(" 个"));
-                lastText.add(AHFormattingUtil.getFormatiWidthComponent(Component.literal("激光靶仓：")
+                lastText.add(AHFormattingUtil.getFormatWidthComponent(Component.literal("激光靶仓：")
                         .withStyle(ChatFormatting.DARK_RED), Component.literal(adaptiveData[3].amps + "A  " + GTValues.VNF[adaptiveData[3].setTier] + " (" + adaptiveData[3].voltage + ")"), 220, "·"));
                 lastText.add(Component.empty()
                         .append(Component.literal("  -")

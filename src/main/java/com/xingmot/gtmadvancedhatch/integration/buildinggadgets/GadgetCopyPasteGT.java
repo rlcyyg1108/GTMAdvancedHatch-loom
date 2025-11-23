@@ -16,8 +16,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -31,6 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 import java.util.*;
 
@@ -61,6 +64,19 @@ public class GadgetCopyPasteGT extends GadgetCopyPaste {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         Minecraft mc = Minecraft.getInstance();
         if (level != null && mc.player != null) {
+            boolean sneakPressed = Screen.hasShiftDown();
+            if (!sneakPressed) {
+                tooltip.add(Component.translatable("buildinggadgets2.tooltips.holdshift", new Object[] { "shift" }).withStyle(ChatFormatting.GRAY));
+            } else {
+                DimBlockPos boundTo = GadgetNBT.getBoundPos(stack);
+                if (boundTo != null) {
+                    tooltip.add(Component.translatable("buildinggadgets2.tooltips.boundto", new Object[] { boundTo.levelKey.location().getPath(), "[" + boundTo.blockPos.toShortString() + "]" }).setStyle(Styles.GOLD));
+                }
+            }
+            stack.getCapability(ForgeCapabilities.ENERGY, (Direction) null).ifPresent((energy) -> {
+                MutableComponent energyText = !sneakPressed ? Component.translatable("buildinggadgets2.tooltips.energy", new Object[] { MagicHelpers.tidyValue((float) energy.getEnergyStored()), MagicHelpers.tidyValue((float) energy.getMaxEnergyStored()) }) : Component.translatable("buildinggadgets2.tooltips.energy", new Object[] { String.format("%,d", energy.getEnergyStored()), String.format("%,d", energy.getMaxEnergyStored()) });
+                tooltip.add(energyText.withStyle(ChatFormatting.GREEN));
+            });
             tooltip.add(Component.translatable("item.buildinggadgets2.partern_copy_tooltip").withStyle(ChatFormatting.GOLD));
             if (GadgetNBT.getPasteReplace(stack)) {
                 tooltip.add(Component.translatable("buildinggadgets2.voidwarning").withStyle(ChatFormatting.RED));
@@ -70,10 +86,6 @@ public class GadgetCopyPasteGT extends GadgetCopyPaste {
             if (!templateName.isEmpty()) {
                 tooltip.add(Component.translatable("buildinggadgets2.templatename", new Object[] { templateName }).withStyle(ChatFormatting.AQUA));
             }
-
-            boolean sneakPressed = Screen.hasShiftDown();
-            if (sneakPressed) {}
-
         }
     }
 

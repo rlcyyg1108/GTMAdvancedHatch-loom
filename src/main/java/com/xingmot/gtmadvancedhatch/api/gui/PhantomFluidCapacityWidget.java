@@ -1,6 +1,6 @@
 package com.xingmot.gtmadvancedhatch.api.gui;
 
-import com.xingmot.gtmadvancedhatch.api.IConfigFluidTransfer;
+import com.xingmot.gtmadvancedhatch.api.IConfigTransfer;
 import com.xingmot.gtmadvancedhatch.common.data.MachinesConstants;
 import com.xingmot.gtmadvancedhatch.util.AHFormattingUtil;
 import com.xingmot.gtmadvancedhatch.util.AHUtil;
@@ -13,6 +13,7 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
+import com.lowdragmc.lowdraglib.misc.FluidStorage;
 import com.lowdragmc.lowdraglib.side.fluid.FluidHelper;
 import com.lowdragmc.lowdraglib.side.fluid.FluidStack;
 import com.lowdragmc.lowdraglib.side.fluid.FluidTransferHelper;
@@ -37,11 +38,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 // TODO 翻页
 
@@ -56,20 +58,34 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
     @Setter
     private static IGuiTexture lockTexture = new GuiTextureGroup(new ResourceTexture("gtceu:textures/gui/widget/button_lock.png").scale(0.65F));
     @Setter
-    protected Long maxCapacity;
+    protected long maxCapacity;
     /** 锁定滚动，每次打开gui时会自动锁定全部槽位 */
     @Setter
-    protected boolean lockScrool = true;
+    protected boolean lockScroll = true;
     /** 截断警告，即将发生流体截断时会暂时锁定流体槽并设为true，解锁时设为false */
     @Setter
     protected boolean isWarned = false;
 
     @Getter
-    private IConfigFluidTransfer icFluidTank;
+    private IConfigTransfer<FluidStorage[], FluidStorage, FluidStack> icFluidTank;
 
-    public PhantomFluidCapacityWidget(@Nullable IConfigFluidTransfer icFluidTank, long currentCapacity, long maxCapacity, @Nullable IFluidTransfer fluidTank, int tank, int x, int y, int width, int height, Supplier<FluidStack> phantomFluidGetter, Consumer<FluidStack> phantomFluidSetter) {
-        super(fluidTank, tank, x, y, width, height, phantomFluidGetter, phantomFluidSetter);
-        this.icFluidTank = icFluidTank;
+    public PhantomFluidCapacityWidget(@Nonnull IConfigTransfer<FluidStorage[], FluidStorage, FluidStack> cTransfer, @Nonnull IFluidTransfer fluidTank, long currentCapacity, long maxCapacity, int tank, int x, int y, int width, int height) {
+        this(cTransfer, currentCapacity, maxCapacity, tank, x, y, width, height,
+                () -> cTransfer.getLockedRef()[tank].getFluid(),
+                (f) -> {
+                    if (f != null && !f.isEmpty()) {
+                        if (fluidTank.getFluidInTank(tank).isEmpty() || fluidTank.getFluidInTank(tank).getFluid() == f.getFluid()) {
+                            cTransfer.setLocked(true, tank, f.copy());
+                        }
+                    } else {
+                        cTransfer.setLocked(false, tank);
+                    }
+                });
+    }
+
+    public PhantomFluidCapacityWidget(@Nonnull IConfigTransfer<FluidStorage[], FluidStorage, FluidStack> cTransfer, long currentCapacity, long maxCapacity, int tank, int x, int y, int width, int height, Supplier<FluidStack> phantomFluidGetter, Consumer<FluidStack> phantomFluidSetter) {
+        super(cTransfer.getIndexLocked(tank), tank, x, y, width, height, phantomFluidGetter, phantomFluidSetter);
+        this.icFluidTank = cTransfer;
         this.lastTankCapacity = currentCapacity;
         this.maxCapacity = maxCapacity;
         this.phantomFluidGetter = phantomFluidGetter;
@@ -77,33 +93,33 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
     }
 
     @Override
-    public long getAmount() {
+    public long getAmount(int slot) {
         return this.lastTankCapacity;
     }
 
     @Override
-    public void setAmount(long capacity) {
+    public void setAmount(int slot, long capacity) {
         this.lastTankCapacity = capacity;
     }
 
     @Override
-    public FluidStack getPhantomStack() {
+    public FluidStack getPhantomStack(int slot) {
         return this.lastPhantomStack;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (!this.isMouseOverElement(mouseX, mouseY) || lockScrool) {
+        if (!this.isMouseOverElement(mouseX, mouseY) || lockScroll) {
             return false;
         } else {
-            long newCapacity = this.getnewCapacity(wheelDelta > (double) 0.0F ? 1 : -1);
+            long newCapacity = this.getNewCapacity(wheelDelta > (double) 0.0F ? 1 : -1);
             this.writeClientAction(MachinesConstants.SCROLL_ACTION_ID, (buf) -> buf.writeLong(newCapacity));
             return true;
         }
     }
 
-    private long getnewCapacity(int wheel) {
+    private long getNewCapacity(int wheel) {
         if (GTUtil.isCtrlDown()) {
             long multi = 2;
             if (GTUtil.isShiftDown()) {
@@ -112,7 +128,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
             if (GTUtil.isAltDown()) {
                 multi *= 4;
             }
-            return wheel > 0 ? Math.min(maxCapacity, AHUtil.multiplyWithLongBounds(this.getAmount(), multi)) : AHUtil.divWithLongBounds(this.getAmount(), multi);
+            return wheel > 0 ? Math.min(maxCapacity, AHUtil.multiplyWithLongBounds(this.getAmount(this.tank), multi)) : AHUtil.divWithLongBounds(this.getAmount(this.tank), multi);
         }
         long add = wheel;
         if (GTUtil.isShiftDown()) {
@@ -125,7 +141,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         if (!GTUtil.isAltDown()) {
             add *= 1000;
         }
-        return Math.min(maxCapacity, AHUtil.addWithLongBounds(this.getAmount(), add));
+        return Math.min(maxCapacity, AHUtil.addWithLongBounds(this.getAmount(this.tank), add));
     }
 
     @Override
@@ -152,7 +168,8 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         switch (id) {
             case MachinesConstants.SCROLL_ACTION_ID -> this.handleScrollAction(buffer.readLong());
             case MachinesConstants.MOUSE_LEFT_CLICK_ACTION_ID -> this.handlePhantomClick();
-            case MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID -> this.handleMidleClick();
+            case MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID -> this.handleMiddleClick();
+            case 2 -> super.handleClientAction(2, buffer); // 不要动父类的流体设置方法
             default -> super.handleClientAction(id, buffer);
         }
 
@@ -161,26 +178,26 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
 
     private void handleScrollAction(long newAmount) {
         if (this.getFluidTank() != null)
-            if (icFluidTank.isTruncateFluid(this.tank, newAmount) && !isWarned) {
+            if (icFluidTank.isTruncate(this.tank, newAmount) && !isWarned) {
                 setWarnedAndWrite(true);
-                reverseLockScrool();
+                reverseLockScroll();
             } else {
                 setWarnedAndWrite(false);
-                icFluidTank.newTankCapacity(this.tank, Math.max(newAmount, 0));
+                icFluidTank.newCapacity(this.tank, Math.max(newAmount, 0));
             }
     }
 
-    private void handleMidleClick() {
-        if (!isCtrlDown() || lockScrool) {
-            reverseLockScrool();
+    private void handleMiddleClick() {
+        if (!isCtrlDown() || lockScroll) {
+            reverseLockScroll();
         } else {
             if (this.getFluidTank() != null)
-                if (icFluidTank.isTruncateFluid(this.tank, 0) && !isWarned) {
+                if (icFluidTank.isTruncate(this.tank, 0) && !isWarned) {
                     setWarnedAndWrite(true);
-                    reverseLockScrool();
+                    reverseLockScroll();
                 } else {
                     setWarnedAndWrite(false);
-                    icFluidTank.newTankCapacity(this.tank, 0);
+                    icFluidTank.newCapacity(this.tank, 0);
                 }
         }
     }
@@ -190,10 +207,10 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         writeUpdateInfo(7, buf -> buf.writeBoolean(setTo));
     }
 
-    private void reverseLockScrool() {
-        this.lockScrool = !lockScrool;
+    private void reverseLockScroll() {
+        this.lockScroll = !lockScroll;
         writeUpdateInfo(6, buf -> {
-            buf.writeBoolean(lockScrool);
+            buf.writeBoolean(lockScroll);
         });
     }
 
@@ -201,7 +218,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         switch (id) {
-            case 6 -> this.lockScrool = buffer.readBoolean();
+            case 6 -> this.lockScroll = buffer.readBoolean();
             case 7 -> this.isWarned = buffer.readBoolean();
             default -> super.readUpdateInfo(id, buffer);
         }
@@ -231,8 +248,8 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         if (isClientSideWidget && fluidTank != null) {
             FluidStack fluidStack = fluidTank.getFluidInTank(tank);
             long capacity = fluidTank.getTankCapacity(tank);
-            if (capacity != lastTankCapacity) {
-                this.lastTankCapacity = capacity;
+            if (capacity != getAmount(-1)) {
+                setAmount(-1, capacity);
             }
             if (!fluidStack.isFluidEqual(lastFluidInTank)) {
                 this.lastFluidInTank = fluidStack.copy();
@@ -244,7 +261,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         Size size = getSize();
         RenderSystem.disableBlend();
         if (this.lastFluidInTank != null && !lastFluidInTank.isEmpty()) {
-            double progress = lastFluidInTank.getAmount() * 1.0 / Math.max(Math.max(lastFluidInTank.getAmount(), lastTankCapacity), 1);
+            double progress = lastFluidInTank.getAmount() * 1.0 / Math.max(Math.max(lastFluidInTank.getAmount(), getAmount(-1)), 1);
             float drawnU = (float) fillDirection.getDrawnU(progress);
             float drawnV = (float) fillDirection.getDrawnV(progress);
             float drawnWidth = (float) fillDirection.getDrawnWidth(progress);
@@ -261,14 +278,14 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
             graphics.pose().pushPose();
             graphics.pose().scale(0.5F, 0.5F, 1);
             // String s = "/" + TextFormattingUtil.formatLongToCompactStringBuckets(lastTankCapacity, 3) + "B";
-            String s = "/" + AHFormattingUtil.formatLongBucketsCompactStringBuckets(lastTankCapacity) + "B";
+            String s = "/" + AHFormattingUtil.formatLongBucketsCompactStringBuckets(getAmount(-1)) + "B";
             Font fontRenderer = Minecraft.getInstance().font;
             graphics.drawString(fontRenderer, s,
                     (int) ((pos.x + (size.width / 3f)) * 2 - fontRenderer.width(s) + 21),
                     (int) ((pos.y + (size.height / 3f) + 6) * 2), 0xFFFFFF, true);
             graphics.pose().popPose();
         }
-        if (lockScrool && lockTexture != null) {
+        if (lockScroll && lockTexture != null) {
             lockTexture.draw(graphics, mouseX, mouseY, pos.x + 6, pos.y - 6, size.width, size.height);
         }
         if (isWarned) {
@@ -301,41 +318,41 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         FluidStack fluidStack = this.currentJEIRenderedIngredient != null ? this.currentJEIRenderedIngredient : this.lastFluidInTank;
         if (fluidStack != null && !fluidStack.isEmpty()) {
             tooltips.add(FluidHelper.getDisplayName(fluidStack));
-            if (!isShiftDown() && (fluidStack.getAmount() > min || this.lastTankCapacity > min)) {
-                tooltips.add(Component.translatable("ldlib.fluid.amount", AHFormattingUtil.formatLongBucketsToShort(fluidStack.getAmount(), min), AHFormattingUtil.formatLongBucketsToShort(this.lastTankCapacity, min)));
+            if (!isShiftDown() && (fluidStack.getAmount() > min || getAmount(-1) > min)) {
+                tooltips.add(Component.translatable("ldlib.fluid.amount", AHFormattingUtil.formatLongBucketsToShort(fluidStack.getAmount(), min), AHFormattingUtil.formatLongBucketsToShort(getAmount(-1), min)));
                 if (!Platform.isForge()) {
-                    tooltips.add(Component.literal("§6mB:§r %d/%d".formatted(fluidStack.getAmount() * 1000L / FluidHelper.getBucket(), this.lastTankCapacity * 1000L / FluidHelper.getBucket())).append(" mB"));
+                    tooltips.add(Component.literal("§6mB:§r %d/%d".formatted(fluidStack.getAmount() * 1000L / FluidHelper.getBucket(), getAmount(-1) * 1000L / FluidHelper.getBucket())).append(" mB"));
                 }
                 tooltips.add(Component.translatable("ldlib.fluid.temperature", FluidHelper.getTemperature(fluidStack)));
                 tooltips.add(FluidHelper.isLighterThanAir(fluidStack) ? Component.translatable("ldlib.fluid.state_gas") : Component.translatable("ldlib.fluid.state_liquid"));
-                if (this.lastTankCapacity != 0)
-                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.phantom_capacity_tank_widget.tooltips").withStyle(ChatFormatting.GOLD));
+                if (getAmount(-1) != 0)
+                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.clear_phantom_capacity.tooltips").withStyle(ChatFormatting.GOLD));
                 tooltips.add(Component.translatable("gtmadvancedhatch.gui.shift_expand_tooltips").withStyle(ChatFormatting.DARK_GRAY));
             } else {
-                tooltips.add(Component.translatable("ldlib.fluid.amount", fluidStack.getAmount(), this.lastTankCapacity).append(" " + FluidHelper.getUnit()));
+                tooltips.add(Component.translatable("ldlib.fluid.amount", fluidStack.getAmount(), getAmount(-1)).append(" " + FluidHelper.getUnit()));
                 if (!Platform.isForge()) {
-                    tooltips.add(Component.literal("§6mB:§r %d/%d".formatted(fluidStack.getAmount() * 1000L / FluidHelper.getBucket(), this.lastTankCapacity * 1000L / FluidHelper.getBucket())).append(" mB"));
+                    tooltips.add(Component.literal("§6mB:§r %d/%d".formatted(fluidStack.getAmount() * 1000L / FluidHelper.getBucket(), getAmount(-1) * 1000L / FluidHelper.getBucket())).append(" mB"));
                 }
                 tooltips.add(Component.translatable("ldlib.fluid.temperature", FluidHelper.getTemperature(fluidStack)));
                 tooltips.add(FluidHelper.isLighterThanAir(fluidStack) ? Component.translatable("ldlib.fluid.state_gas") : Component.translatable("ldlib.fluid.state_liquid"));
-                if (!isShiftDown() && this.lastTankCapacity != 0)
-                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.phantom_capacity_tank_widget.tooltips").withStyle(ChatFormatting.GOLD));
+                if (!isShiftDown() && getAmount(-1) != 0)
+                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.clear_phantom_capacity.tooltips").withStyle(ChatFormatting.GOLD));
             }
         } else {
             tooltips.add(Component.translatable("ldlib.fluid.empty"));
-            if (!isShiftDown() && this.lastTankCapacity > min) {
-                tooltips.add(Component.translatable("ldlib.fluid.amount", 0, AHFormattingUtil.formatLongBucketsToShort(this.lastTankCapacity, min)));
-                if (this.lastTankCapacity != 0)
-                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.phantom_capacity_tank_widget.tooltips").withStyle(ChatFormatting.GOLD));
+            if (!isShiftDown() && getAmount(-1) > min) {
+                tooltips.add(Component.translatable("ldlib.fluid.amount", 0, AHFormattingUtil.formatLongBucketsToShort(getAmount(-1), min)));
+                if (getAmount(-1) != 0)
+                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.clear_phantom_capacity.tooltips").withStyle(ChatFormatting.GOLD));
                 tooltips.add(Component.translatable("gtmadvancedhatch.gui.shift_expand_tooltips").withStyle(ChatFormatting.DARK_GRAY));
             } else {
-                tooltips.add(Component.translatable("ldlib.fluid.amount", 0, this.lastTankCapacity)
+                tooltips.add(Component.translatable("ldlib.fluid.amount", 0, getAmount(-1))
                         .append(" " + FluidHelper.getUnit()));
-                if (this.lastTankCapacity != 0)
-                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.phantom_capacity_tank_widget.tooltips").withStyle(ChatFormatting.GOLD));
+                if (getAmount(-1) != 0)
+                    tooltips.add(Component.translatable("gtmadvancedhatch.gui.clear_phantom_capacity.tooltips").withStyle(ChatFormatting.GOLD));
             }
             if (!Platform.isForge()) {
-                tooltips.add(Component.literal("§6mB:§r %d/%d".formatted(0, this.lastTankCapacity * 1000L / FluidHelper.getBucket()))
+                tooltips.add(Component.literal("§6mB:§r %d/%d".formatted(0, getAmount(-1) * 1000L / FluidHelper.getBucket()))
                         .append(" mB"));
             }
         }

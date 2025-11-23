@@ -1,0 +1,43 @@
+{
+  "sortnum":3,
+  "name": "可配置总成",
+  "icon": "gtmadvancedhatch:ev_configurable_dual_hatch_output",
+  "category": "gtmadvancedhatch:hatch",
+  "pages": [
+    {
+      "type": "text",
+      "text": "$(item)可配置总成$()同时拥有8格同级别可配置仓的物品和流体槽。具体见$(l:hatch/configurable_item_bus)可配置物品总线$()和$(l:hatch/configurable_fluid_hatch)可配置流体仓$()。$(p)还有对应的终极可配置总成，拥有16倍数量的物品和流体槽位（翻页显示）。$(br)$(thing)支持使用闪存读写配置$()。"
+    },
+    {
+      "type": "2item_text",
+      "item1": "gtmadvancedhatch:ev_configurable_dual_hatch_output,gtmadvancedhatch:iv_configurable_dual_hatch_output,gtmadvancedhatch:luv_configurable_dual_hatch_output,gtmadvancedhatch:zpm_configurable_dual_hatch_output,gtmadvancedhatch:uv_configurable_dual_hatch_output,gtmadvancedhatch:uhv_configurable_dual_hatch_output,gtmadvancedhatch:uev_configurable_dual_hatch_output,gtmadvancedhatch:uiv_configurable_dual_hatch_output,gtmadvancedhatch:uxv_configurable_dual_hatch_output,gtmadvancedhatch:opv_configurable_dual_hatch_output,gtmadvancedhatch:max_configurable_dual_hatch_output",
+      "item2":"gtmadvancedhatch:max_configurable_dual_hatch_input_16p,gtmadvancedhatch:max_configurable_dual_hatch_output_16p",
+      "title": "可配置仓的容量",
+      "text": "可配置总成直接使用对应等级的八重可配置流体仓和八重可配置物品总线在组装机中合成。终极可配置总成则需要各使用16个进行制作。$(p)$(8)$(o)         \"~ 据说是某位格雷员工从某个魔怔外星文明那里得来的技术 ~ \"$()$(br)         ——$(max)终极可配置总成"
+    },
+    {
+      "type": "4x4item_display",
+      "title": "一些终极可配置总成",
+      "item11": "gtmadvancedhatch:ev_configurable_dual_hatch_input_16p",
+      "item12": "gtmadvancedhatch:ev_configurable_dual_hatch_output_16p",
+      "item13": "gtmadvancedhatch:iv_configurable_dual_hatch_input_16p",
+      "item14": "gtmadvancedhatch:iv_configurable_dual_hatch_output_16p",
+      "item21": "gtmadvancedhatch:luv_configurable_dual_hatch_input_16p",
+      "item22": "gtmadvancedhatch:luv_configurable_dual_hatch_output_16p",
+      "item23": "gtmadvancedhatch:zpm_configurable_dual_hatch_input_16p",
+      "item24": "gtmadvancedhatch:zpm_configurable_dual_hatch_output_16p",
+      "item31": "gtmadvancedhatch:uv_configurable_dual_hatch_input_16p",
+      "item32": "gtmadvancedhatch:uv_configurable_dual_hatch_output_16p",
+      "item33": "gtmadvancedhatch:uhv_configurable_dual_hatch_input_16p",
+      "item34": "gtmadvancedhatch:uhv_configurable_dual_hatch_output_16p",
+      "item41": "gtmadvancedhatch:opv_configurable_dual_hatch_input_16p",
+      "item42": "gtmadvancedhatch:opv_configurable_dual_hatch_output_16p",
+      "item43": "gtmadvancedhatch:max_configurable_dual_hatch_input_16p",
+      "item44": "gtmadvancedhatch:max_configurable_dual_hatch_output_16p"
+    },
+    {
+      "type": "text",
+      "text": "$(li)$(ulv) 8桶 64堆叠$(li)$(lv) 16桶 128堆叠$(li)$(mv) 32桶 256堆叠$(li)$(hv) 2048桶 1024堆叠$(li)$(ev) 32768桶 4096堆叠$(li)$(iv) 524288桶 16384堆叠$(li)$(luv) 8388608桶 65536堆叠$(li)$(zpm) 134217728桶 262144堆叠$(li)$(uv) 21亿桶 1048576堆叠$(li)......$(li)$(max) 9.22E15桶 21亿堆叠"
+    }
+  ]
+}

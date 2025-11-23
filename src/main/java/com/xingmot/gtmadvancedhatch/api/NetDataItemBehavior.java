@@ -29,13 +29,13 @@ public class NetDataItemBehavior implements IInteractionItem, IAddInformation {
             String name = tag.getString(TagConstants.ADAPTIVE_NET_NAME);
             tooltipComponents.add(Component.literal("UUID: ").withStyle(ChatFormatting.GRAY).append(Component.literal(uuid.toString()).withStyle(ChatFormatting.YELLOW)));
             if (name.equals("everyone"))
-                tooltipComponents.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.player").withStyle(ChatFormatting.GRAY).append(Component.translatable("gtmadvancedhatch.gui.binduuid.everyone").withStyle(ChatFormatting.YELLOW)));
+                tooltipComponents.add(Component.translatable("gtmadvancedhatch.machine.adaptive.player").withStyle(ChatFormatting.GRAY).append(Component.translatable("gtmadvancedhatch.gui.bind_uuid.everyone").withStyle(ChatFormatting.YELLOW)));
             else
-                tooltipComponents.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.player").withStyle(ChatFormatting.GRAY).append(Component.literal(name).withStyle(ChatFormatting.YELLOW)));
+                tooltipComponents.add(Component.translatable("gtmadvancedhatch.machine.adaptive.player").withStyle(ChatFormatting.GRAY).append(Component.literal(name).withStyle(ChatFormatting.YELLOW)));
         }
         if (tag.contains(TagConstants.ADAPTIVE_NET_FREQUENCY)) {
             long frequency = tag.getLong("adaptive_net_frequency");
-            tooltipComponents.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.frequency").withStyle(ChatFormatting.GRAY).append(Component.literal("" + frequency).withStyle(ChatFormatting.AQUA)));
+            tooltipComponents.add(Component.translatable("gtmadvancedhatch.machine.adaptive.frequency").withStyle(ChatFormatting.GRAY).append(Component.literal("" + frequency).withStyle(ChatFormatting.AQUA)));
         }
     }
 

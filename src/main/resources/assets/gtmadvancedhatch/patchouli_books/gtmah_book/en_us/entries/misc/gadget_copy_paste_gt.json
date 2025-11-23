@@ -1,0 +1,19 @@
+{
+  "sortnum":200,
+  "name": "gt复制工具",
+  "icon": "buildinggadgets2:gadget_copy_paste_gt",
+  "category": "gtmadvancedhatch:misc",
+  "flag":"mod:buildinggadgets2",
+  "pages": [
+    {
+      "type": "text",
+      "text": "$(item)gt复制工具$()专门兼容gt及相关附属的复制工具。$(_)它可以轻而易举的复制一片区域的所有仓室和结构，包括其配置$()。$(br)$(li)1.玩家可以在$(k:buildinggadgets2.settings_menu)键打开的菜单中的左侧找到容器绑定模式按钮。$(li)2.容器绑定模式下可根据当前复制区域一键生成样板$()"
+    },
+    {
+      "type": "spotlight",
+      "item": "buildinggadgets2:gadget_copy_paste_gt",
+      "title": "gt复制工具",
+      "text": "在模组的配置项中可以设置工具的$(item)电量上限(默认：100M)$()，以及是否开启$(item)复制更多ae部件（无消耗）$()，开启后原先无法复制的ae线缆，合成终端等物品将可以复制，不过不会消耗物品。$(br)因技术原因创造能量单元还是无法被复制。"
+    }
+  ]
+}

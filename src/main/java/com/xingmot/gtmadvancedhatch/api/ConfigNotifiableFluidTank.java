@@ -13,25 +13,30 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import lombok.Getter;
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * 容量可变，可单独设置过滤的流体存储
  */
-public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IConfigFluidTransfer {
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IConfigTransfer<FluidStorage[], FluidStorage, FluidStack> {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ConfigNotifiableFluidTank.class, NotifiableFluidTank.MANAGED_FIELD_HOLDER);
-    @Getter
     @Persisted
     @DescSynced
     protected FluidStorage[] lockedFluids;
-    @Getter
+    @Persisted
+    public final long maxCapacity;
     @Persisted
     @DescSynced
     public long[] tankCapacity;
@@ -43,6 +48,7 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
         super(machine, slots, maxCapacity, io, capabilityIO);
         this.lockedFluids = new FluidStorage[slots];
         this.tankCapacity = new long[slots];
+        this.maxCapacity = maxCapacity;
         Arrays.fill(this.tankCapacity, maxCapacity);
         for (int i = 0; i < slots; i++) {
             lockedFluids[i] = new FluidStorage(tankCapacity[i]);
@@ -58,30 +64,49 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
         return MANAGED_FIELD_HOLDER;
     }
 
+    @Override
+    public void setCapacity(int index, long capacity) {
+        this.tankCapacity[index] = capacity;
+    }
+
+    @Override
+    public long getCapacity(int index) {
+        return tankCapacity[index];
+    }
+
     /**
      * 外界使用时请调用下面这两个
      */
     @Override
-    public void newTankCapacity(long capacity) {
-        Arrays.fill(this.tankCapacity, capacity);
+    public void newCapacity(long capacity) {
         resetBasicInfo(capacity);
     }
 
     @Override
-    public void newTankCapacity(int tank, long capacity) {
-        this.tankCapacity[tank] = capacity;
+    public void newCapacity(int tank, long capacity) {
         resetOneBasicInfo(tank, capacity);
     }
 
     // 需要在持久化数据载入完成后调用
-    public void initTank() {
+    public void init() {
         for (int i = 0; i < this.tankCapacity.length; i++) {
-            this.resetOneBasicInfo(i, this.tankCapacity[i]);
+            this.resetOneBasicInfo(i, getCapacity(i));
             int finalI = i;
-            if (this.isLocked(finalI))
+            if (isLocked(i))
                 this.setFilter(i, (stack) -> stack.isFluidEqual(this.lockedFluids[finalI].getFluid()));
-            else setLocked(false, i);
+            else
+                this.setFilter(i, (stack) -> !isLockedEmptySlot);
         }
+    }
+
+    @Override
+    public FluidStorage[] getLockedRef() {
+        return this.lockedFluids;
+    }
+
+    @Override
+    public FluidStorage getIndexLocked(int index) {
+        return this.lockedFluids[index];
     }
 
     /**
@@ -90,6 +115,7 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
      * @param capacity 容量
      */
     public void resetBasicInfo(long capacity) {
+        Arrays.fill(this.tankCapacity, capacity);
         for (int i = 0; i < this.getSize(); i++) {
             resetOneBasicInfo(i, capacity);
         }
@@ -99,32 +125,33 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
      * 单独设置某一格的流体容量
      *
      * @param index    格子索引
-     * @param capacity 容量，最小为1桶，最大为long.max
+     * @param capacity 容量，最小为0桶，最大为long.max
      */
     public void resetOneBasicInfo(int index, long capacity) {
-        if (machine instanceof IMultiCapacity mc_machine) {
+        if (machine instanceof IMultiCapacity) {
             capacity = Math.max(capacity, 0);
             // 容量小于流体量时进行截断
-            if (isTruncateFluid(index, capacity))
-                this.getFluidInTank(index)
-                        .setAmount(capacity);
-            this.getStorages()[index].setCapacity(capacity);
-            lockedFluids[index].setCapacity(capacity);
-            mc_machine.getTankCapacity()[index] = capacity;
+            if (isTruncate(index, capacity))
+                this.getFluidInTank(index).setAmount(capacity);
+            this.tankCapacity[index] = capacity; // 持久化用的
+            this.getStorages()[index].setCapacity(capacity); // 实际操作格子容量，HugeTankWidget会从里拿
+            lockedFluids[index].setCapacity(capacity); // 虚拟格容量从这里拿
         }
     }
 
     @Override
-    public boolean isTruncateFluid(int index, long capacity) {
+    public boolean isTruncate(int index, long capacity) {
         return !this.getFluidInTank(index).isEmpty() && capacity < this.getFluidInTank(index).getAmount();
     }
 
     @Override
+    @Nullable
     public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, @Nullable String slotName, boolean simulate) {
         return handleIngredient(io, recipe, left, simulate, this.getStorages());
     }
 
     // Copied from gtceu 1.6.4 mainly coded by kross
+    @Nullable
     public List<FluidIngredient> handleIngredient(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate, FluidStorage[] storages) {
         if (io != handlerIO) return left;
         if (io != IO.IN && io != IO.OUT) return left.isEmpty() ? null : left;
@@ -252,8 +279,7 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
 
     /** 这个方法的index不会超出大小 */
     public boolean isLocked(int index) {
-        return !isLockedEmptySlot && !this.lockedFluids[index].getFluid()
-                .isEmpty();
+        return !this.lockedFluids[index].getFluid().isEmpty();
     }
 
     public void setLocked(boolean locked, int tank) {
@@ -273,7 +299,7 @@ public class ConfigNotifiableFluidTank extends NotifiableFluidTank implements IC
                 this.onContentsChanged();
             } else {
                 this.lockedFluids[tank].setFluid(FluidStack.empty());
-                this.setFilter(tank, (stack) -> true);
+                this.setFilter(tank, (stack) -> !isLockedEmptySlot);
                 this.onContentsChanged();
             }
 

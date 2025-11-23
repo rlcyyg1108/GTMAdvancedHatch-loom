@@ -45,9 +45,9 @@ public class CapacityAmountSetWidget<T> extends Widget {
         if (this.index < 0) {
             return "0";
         }
-        T phantomStack = this.parentWidget.getPhantomStack();
+        T phantomStack = this.parentWidget.getPhantomStack(this.index);
         if (phantomStack != null) {
-            return String.valueOf(this.parentWidget.getAmount());
+            return String.valueOf(this.parentWidget.getAmount(this.index));
         }
         return "0";
     }
@@ -58,9 +58,9 @@ public class CapacityAmountSetWidget<T> extends Widget {
             if (this.index < 0) {
                 return;
             }
-            T phantomStack = this.parentWidget.getPhantomStack();
+            T phantomStack = this.parentWidget.getPhantomStack(this.index);
             if (newAmount > 0 && phantomStack != null) {
-                this.parentWidget.setAmount(newAmount);
+                this.parentWidget.setAmount(this.index, newAmount);
             }
         } catch (NumberFormatException ignore) {}
     }

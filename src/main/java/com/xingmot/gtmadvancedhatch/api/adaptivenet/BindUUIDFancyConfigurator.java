@@ -37,7 +37,7 @@ public class BindUUIDFancyConfigurator implements IFancyConfigurator {
 
     @Override
     public Component getTitle() {
-        return Component.translatable("gtmadvancedhatch.gui.binduuid.title").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW));
+        return Component.translatable("gtmadvancedhatch.gui.bind_uuid.title").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW));
     }
 
     @Override

@@ -136,7 +136,7 @@ public class AdaptiveNetProvider extends CapabilityBlockProvider<IAdaptiveNetCap
             Component c = isAutoRebind ? Component.translatable("gtmadvancedhatch.gui.auto_rebind.yes").withStyle(ChatFormatting.DARK_GREEN) : Component.translatable("gtmadvancedhatch.gui.auto_rebind.no").withStyle(ChatFormatting.RED);
             tooltip.add(Component.translatable("gtmadvancedhatch.gui.auto_rebind").append(c));
             if (frequency != 0 && isSlave)
-                tooltip.add(Component.translatable("gtmadvancedhatch.machine.adaptivee.fail").withStyle(ChatFormatting.BLUE));
+                tooltip.add(Component.translatable("gtmadvancedhatch.machine.adaptive.fail").withStyle(ChatFormatting.BLUE));
         } else if (capData.hasUUID("UUID") && metaMachine instanceof AdaptiveNetEnergyHatchPartMachine || metaMachine instanceof AdaptiveNetLaserHatchPartMachine) {
             tooltips(tooltip, capData);
         }
@@ -152,7 +152,7 @@ public class AdaptiveNetProvider extends CapabilityBlockProvider<IAdaptiveNetCap
                     .append(uuid.toString()).withStyle(ChatFormatting.YELLOW));
         if (name.equals("everyone"))
             tooltip.add(Component.translatable("gtmadvancedhatch.jade.adaptive_net_provider.name")
-                    .append(Component.translatable("gtmadvancedhatch.gui.binduuid.everyone").withStyle(ChatFormatting.AQUA)));
+                    .append(Component.translatable("gtmadvancedhatch.gui.bind_uuid.everyone").withStyle(ChatFormatting.AQUA)));
         else tooltip.add(Component.translatable("gtmadvancedhatch.jade.adaptive_net_provider.name")
                 .append(Component.literal(name).withStyle(ChatFormatting.AQUA)));
         tooltip.add(Component.translatable("gtmadvancedhatch.jade.adaptive_net_provider.frequency")

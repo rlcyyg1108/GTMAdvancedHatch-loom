@@ -2,10 +2,7 @@ package com.xingmot.gtmadvancedhatch.common.data;
 
 import com.xingmot.gtmadvancedhatch.GTMAdvancedHatch;
 import com.xingmot.gtmadvancedhatch.common.AHRegistration;
-import com.xingmot.gtmadvancedhatch.common.machines.ConfigurableFluidHatchPartMachine;
-import com.xingmot.gtmadvancedhatch.common.machines.LockItemOutputBus;
-import com.xingmot.gtmadvancedhatch.common.machines.NetEnergyHatchPartMachine;
-import com.xingmot.gtmadvancedhatch.common.machines.NetLaserHatchPartMachine;
+import com.xingmot.gtmadvancedhatch.common.machines.*;
 import com.xingmot.gtmadvancedhatch.common.machines.adaptivehatch.AdaptiveNetEnergyHatchPartMachine;
 import com.xingmot.gtmadvancedhatch.common.machines.adaptivehatch.AdaptiveNetEnergyTerminal;
 import com.xingmot.gtmadvancedhatch.common.machines.adaptivehatch.AdaptiveNetLaserHatchPartMachine;
@@ -58,12 +55,11 @@ public class AHMachines {
                     .rotationState(RotationState.ALL)
                     .abilities(PartAbility.EXPORT_ITEMS)
                     .renderer(() -> new OverlayTieredMachineRenderer(tier,
-                            GTCEu.id("block/machine/part/item_bus.import")))
-                    // .overlayTieredHullRenderer("item_bus.export")
+                            GTCEu.id("block/machine/part/item_bus.export")))
                     .tooltips(Component.translatable("gtmadvancedhatch.machine.lock_item_output.tooltip"),
                             Component.translatable("gtmadvancedhatch.machine.lock_item_output.tooltip2"),
                             Component.translatable("gtceu.machine.item_bus.export.tooltip"),
-                            Component.empty().append(Component.translatable("gtmadvancedhatch.machine.lock_item_output.tooltip3").withStyle(ChatFormatting.GOLD))
+                            Component.empty().append(Component.translatable("gtmadvancedhatch.machine.item_storage_slot_capacity").withStyle(ChatFormatting.GOLD))
                                     .append(Component.literal("%d (x%d)".formatted(LockItemOutputBus.getLockItemOutputBusSlotLimit(tier),
                                             LockItemOutputBus.getLockItemOutputBusSlotLimit(tier) / 64))),
                             Component.translatable("gtceu.universal.tooltip.item_storage_capacity",
@@ -71,6 +67,20 @@ public class AHMachines {
                     .compassNode("item_bus")
                     .register(),
             GTValues.tiersBetween(ULV, GTCEuAPI.isHighTier() ? MAX : UV));
+    // 可配置总线
+    public static final MachineDefinition[] CONFIGURABLE_ITEM_INPUT_BUS_4X = registerConfigurableItemBuses("configurable_item_bus",
+            IO.IN, 4, ALL_TIERS, PartAbility.IMPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_ITEM_INPUT_BUS_8X = registerConfigurableItemBuses("configurable_item_bus",
+            IO.IN, 8, NET_HIGH_TIERS, PartAbility.IMPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_ITEM_INPUT_BUS_16X = registerConfigurableItemBuses("configurable_item_bus",
+            IO.IN, 16, NET_HIGH_TIERS, PartAbility.IMPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_ITEM_OUTPUT_BUS_4X = registerConfigurableItemBuses("configurable_item_bus",
+            IO.OUT, 4, ALL_TIERS, PartAbility.EXPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_ITEM_OUTPUT_BUS_8X = registerConfigurableItemBuses("configurable_item_bus",
+            IO.OUT, 8, NET_HIGH_TIERS, PartAbility.EXPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_ITEM_OUTPUT_BUS_16X = registerConfigurableItemBuses("configurable_item_bus",
+            IO.OUT, 16, NET_HIGH_TIERS, PartAbility.EXPORT_ITEMS);
+
     // endregion
     // region 》流体仓室
     public static final MachineDefinition[] CONFIGURABLE_FLUID_HATCH_IMPORT_1X = registerConfigurableFluidHatches("configurable_fluid_hatch",
@@ -93,6 +103,20 @@ public class AHMachines {
             NET_HIGH_TIERS, PartAbility.EXPORT_FLUIDS, PartAbility.EXPORT_FLUIDS_1X);
 
     // endregion
+    // 可配置总成
+    public static final MachineDefinition[] CONFIGURABLE_DUAL_HATCH_IMPORT_1P = registerConfigurableDualHatches("configurable_dual_hatch",
+            IO.IN, 1, FluidHatchPartMachine.INITIAL_TANK_CAPACITY_1X,
+            NET_HIGH_TIERS, PartAbility.IMPORT_FLUIDS, PartAbility.IMPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_DUAL_HATCH_EXPORT_1P = registerConfigurableDualHatches("configurable_dual_hatch",
+            IO.OUT, 1, FluidHatchPartMachine.INITIAL_TANK_CAPACITY_1X,
+            NET_HIGH_TIERS, PartAbility.EXPORT_FLUIDS, PartAbility.EXPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_DUAL_HATCH_IMPORT_16P = registerConfigurableDualHatches("configurable_dual_hatch",
+            IO.IN, 16, FluidHatchPartMachine.INITIAL_TANK_CAPACITY_1X,
+            NET_HIGH_TIERS, PartAbility.IMPORT_FLUIDS, PartAbility.IMPORT_ITEMS);
+    public static final MachineDefinition[] CONFIGURABLE_DUAL_HATCH_EXPORT_16P = registerConfigurableDualHatches("configurable_dual_hatch",
+            IO.OUT, 16, FluidHatchPartMachine.INITIAL_TANK_CAPACITY_1X,
+            NET_HIGH_TIERS, PartAbility.EXPORT_FLUIDS, PartAbility.EXPORT_ITEMS);
+
     // region 》能源仓室
     public static final Set<MachineDefinition> ALL_NET_ENERGY_OUTPUT_HATCH = new HashSet<>();
     public static final Set<MachineDefinition> ALL_NET_ENERGY_INPUT_HATCH = new HashSet<>();
@@ -196,7 +220,38 @@ public class AHMachines {
         return definitions;
     }
 
-    // TODO 修改tooltips
+    public static MachineDefinition[] registerConfigurableItemBuses(String name, IO io, int slots,
+                                                                    int[] tiers, PartAbility... abilities) {
+        var multi = (slots == 1 ? "" : "_%dx".formatted(slots));
+        var renderPath = "block/machine/part/item_bus." + (io == IO.IN ? "import" : "export");
+        return registerTieredMachines(name + (io == IO.IN ? "_input" : "_output") + multi,
+                (holder, tier) -> new ConfigurableItemBusPartMachine(holder, tier, io, slots),
+                (tier, builder) -> {
+                    builder.rotationState(RotationState.ALL)
+                            .renderer(() -> new OverlayTieredMachineRenderer(tier, GTCEu.id(renderPath)))
+                            .abilities(abilities)
+                            .compassNode("item_bus")
+                            .tooltipBuilder(
+                                    (itemStack, components) -> {
+                                        if (tier == MAX && slots == 16) {
+                                            components.add(AHFormattingUtil.getRainbowScrollComponent(Component.translatable("gtmadvancedhatch.machine.great_job.tooltip2")
+                                                    .getString(), AHFormattingUtil.RainbowSpeed.FAST2, false)
+                                                    .withStyle(ChatFormatting.BOLD));
+                                        }
+                                        components.addAll(List.of(
+                                                Component.translatable("gtceu.machine.fluid_hatch." + (io == IO.IN ? "import" : "export") + ".tooltip"),
+                                                Component.translatable("gtmadvancedhatch.machine.configurable_hatch.tooltip"),
+                                                Component.translatable("gtceu.machine.item_bus.export.tooltip"),
+                                                Component.empty().append(Component.translatable("gtmadvancedhatch.machine.item_storage_slot_capacity").withStyle(ChatFormatting.GOLD))
+                                                        .append(Component.literal("%s (x%d)".formatted(
+                                                                AHFormattingUtil.formatLongToShort(ConfigurableItemBusPartMachine.getSlotCapacity(tier), 10240),
+                                                                ConfigurableItemBusPartMachine.getSlotCapacity(tier) / 64))),
+                                                Component.translatable("gtceu.universal.tooltip.item_storage_capacity", slots)));
+                                    });
+                    return builder.register();
+                }, tiers);
+    }
+
     public static MachineDefinition[] registerConfigurableFluidHatches(String name, IO io, long initialCapacity, int slots,
                                                                        int[] tiers, PartAbility... abilities) {
         var multi = (slots == 1 ? "" : "_%dx".formatted(slots));
@@ -212,19 +267,55 @@ public class AHMachines {
                             .tooltipBuilder(
                                     (itemStack, components) -> {
                                         if (tier == MAX && slots == 16) {
-                                            components.add(AHFormattingUtil.getRainbowScrollComponent(Component.translatable("gtmadvancedhatch.machine.greatjob.tooltip2")
+                                            components.add(AHFormattingUtil.getRainbowScrollComponent(Component.translatable("gtmadvancedhatch.machine.great_job.tooltip2")
                                                     .getString(), AHFormattingUtil.RainbowSpeed.FAST2, false)
                                                     .withStyle(ChatFormatting.BOLD));
                                         }
                                         components.addAll(List.of(
                                                 Component.translatable("gtceu.machine.fluid_hatch." + (io == IO.IN ? "import" : "export") + ".tooltip"),
-                                                Component.translatable("gtmadvancedhatch.machine.configurable_fluid_hatch.tooltip.0"),
-                                                Component.translatable("gtmadvancedhatch.machine.configurable_fluid_hatch.tooltip.1")));
+                                                Component.translatable("gtmadvancedhatch.machine.configurable_hatch.tooltip"),
+                                                Component.translatable("gtmadvancedhatch.machine.configurable_fluid_hatch.tooltip.0")));
                                         if (slots == 1)
                                             components.add(Component.translatable("gtmadvancedhatch.machine.fluid_storage_capacity.tooltip",
                                                     AHFormattingUtil.formatLongBucketsToShort(ConfigurableFluidHatchPartMachine.getTankCapacity(initialCapacity, tier), 1024000)));
-                                        else components.add(Component.translatable("gtmadvancedhatch.machine.fluid_storage_capacity_mult.tooltip",
+                                        else components.add(Component.translatable("gtmadvancedhatch.machine.fluid_storage_capacity_multi.tooltip",
                                                 slots, AHFormattingUtil.formatLongBucketsToShort(ConfigurableFluidHatchPartMachine.getTankCapacity(initialCapacity, tier), 1024000)));
+                                    });
+
+                    return builder.register();
+                },
+                tiers);
+    }
+
+    public static MachineDefinition[] registerConfigurableDualHatches(String name, IO io, int page, long initialCapacity,
+                                                                      int[] tiers, PartAbility... abilities) {
+        var multi = (page == 1 ? "" : "_%dp".formatted(page));
+        var renderPath = "block/machine/part/dual_hatch." + (io == IO.IN ? "import" : "export");
+        return registerTieredMachines(name + (io == IO.IN ? "_input" : "_output") + multi,
+                (holder, tier) -> new ConfigurableDualHatchPartMachine(holder, tier, io, page, initialCapacity),
+                (tier, builder) -> {
+                    builder.rotationState(RotationState.ALL)
+                            .renderer(() -> new OverlayTieredMachineRenderer(tier, GTCEu.id(renderPath)))
+                            .abilities(abilities)
+                            .compassNodeSelf()
+                            .tooltipBuilder(
+                                    (itemStack, components) -> {
+                                        if (tier == MAX && page == 16) {
+                                            components.add(AHFormattingUtil.getRainbowScrollComponent(Component.translatable("gtmadvancedhatch.machine.great_job.tooltip3")
+                                                    .getString(), AHFormattingUtil.RainbowSpeed.FAST2, false)
+                                                    .withStyle(ChatFormatting.BOLD));
+                                        }
+                                        components.addAll(List.of(
+                                                Component.translatable("gtceu.machine.dual_hatch." + (io == IO.IN ? "import" : "export") + ".tooltip"),
+                                                Component.translatable("gtmadvancedhatch.machine.configurable_hatch.tooltip"),
+                                                Component.translatable("gtmadvancedhatch.machine.configurable_fluid_hatch.tooltip.0"),
+                                                Component.translatable("gtmadvancedhatch.machine.fluid_storage_capacity_multi.tooltip",
+                                                        page * 8, AHFormattingUtil.formatLongBucketsToShort(ConfigurableFluidHatchPartMachine.getTankCapacity(initialCapacity, tier), 1024000)),
+                                                Component.empty().append(Component.translatable("gtmadvancedhatch.machine.item_storage_slot_capacity").withStyle(ChatFormatting.GOLD))
+                                                        .append(Component.literal("%s (x%d)".formatted(
+                                                                AHFormattingUtil.formatLongToShort(ConfigurableItemBusPartMachine.getSlotCapacity(tier), 10240),
+                                                                ConfigurableItemBusPartMachine.getSlotCapacity(tier) / 64))),
+                                                Component.translatable("gtceu.universal.tooltip.item_storage_capacity", page * 8)));
                                     });
 
                     return builder.register();
@@ -270,7 +361,7 @@ public class AHMachines {
                             .tooltipBuilder(
                                     (itemStack, components) -> {
                                         if (amperage == 2147483647) {
-                                            components.add(AHFormattingUtil.getRainbowScrollComponent(Component.translatable("gtmadvancedhatch.machine.greatjob.tooltip")
+                                            components.add(AHFormattingUtil.getRainbowScrollComponent(Component.translatable("gtmadvancedhatch.machine.great_job.tooltip")
                                                     .getString(), AHFormattingUtil.RainbowSpeed.FAST2, false)
                                                     .withStyle(ChatFormatting.BOLD));
                                         }

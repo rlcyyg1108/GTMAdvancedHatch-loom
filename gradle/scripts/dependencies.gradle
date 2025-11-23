@@ -12,6 +12,7 @@ dependencies {
     modCompileOnly("mezz.jei:jei-$project.minecraft_version-forge-api:$project.jei_version") { transitive = false }
     modCompileOnly("mezz.jei:jei-$project.minecraft_version-common-api:$project.jei_version") { transitive = false }
     modRuntimeOnly("mezz.jei:jei-$project.minecraft_version-forge:$project.jei_version") { transitive = false }
+    modCompileOnly("dev.emi:emi-forge:$project.emi_version")
     modLocalRuntime("maven.modrinth:embeddium:0.3.30+mc1.20.1") // 没汉化无所谓，玩家会自己开i18n的（逃
     modLocalRuntime("maven.modrinth:sodium-extras:forge-1.20.1-1.0.7")
     modLocalRuntime("maven.modrinth:modern-ui:3.12.0.1")
@@ -177,7 +178,7 @@ repositories {
     maven {
         url = "https://maven.blamejared.com/"
     }
-    maven {
+    maven { // terraformers - EMI
         url = "https://maven.terraformersmc.com/releases/"
     }
     maven {

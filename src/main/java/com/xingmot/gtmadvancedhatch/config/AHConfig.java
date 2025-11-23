@@ -47,4 +47,9 @@ public class AHConfig {
     @Configurable
     @Configurable.Comment({ "复制工具是否能建造AE线缆、终端等原先不能复制的东西（技术问题只能无消耗）" })
     public boolean buildingGadgetBuildAE2 = false;
+
+    @Configurable
+    @Configurable.Range(min = 1, max = 5)
+    @Configurable.Comment({ "可配置流体仓、可配置总成的流体自动输入输出间隔（越小越快），默认：5" })
+    public int configurableFluidIOTick = 5;
 }
