@@ -217,8 +217,8 @@ public class AHRecipes {
                     .save(provider);
             ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_dual_hatch_input_16p"))
                     .outputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_IMPORT_16P[tier], 1)
-                    .inputItems(AHMachines.CONFIGURABLE_ITEM_INPUT_BUS_8X[tier], 16)
-                    .inputItems(AHMachines.CONFIGURABLE_FLUID_HATCH_IMPORT_8X[tier], 16)
+                    .inputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_IMPORT_1P[tier], 16)
+                    .inputItems(RecipeConstants.FIELD_GENERATOR.get(tier), 1)
                     .duration(600)
                     .EUt(GTValues.VA[tier])
                     .save(provider);
@@ -232,8 +232,8 @@ public class AHRecipes {
                     .save(provider);
             ASSEMBLER_RECIPES.recipeBuilder(GTMAdvancedHatch.id(GTValues.VN[tier].toLowerCase() + "configurable_dual_hatch_output_16p"))
                     .outputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_EXPORT_16P[tier], 1)
-                    .inputItems(AHMachines.CONFIGURABLE_ITEM_OUTPUT_BUS_8X[tier], 16)
-                    .inputItems(AHMachines.CONFIGURABLE_FLUID_HATCH_EXPORT_8X[tier], 16)
+                    .inputItems(AHMachines.CONFIGURABLE_DUAL_HATCH_EXPORT_1P[tier], 16)
+                    .inputItems(RecipeConstants.FIELD_GENERATOR.get(tier), 1)
                     .duration(600)
                     .EUt(GTValues.VA[tier])
                     .save(provider);
