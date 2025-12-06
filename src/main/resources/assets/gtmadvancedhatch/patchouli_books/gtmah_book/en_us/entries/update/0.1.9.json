@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "此页面涵盖了上个正式版之后发布的全部热修hotfix。$(br)$(thing)$(_)功能性更新：$()$(br)$(li)$(l:hatch/configurable_fluid_hatch)可配置流体仓$()$(li)$(l:hatch/configurable_item_bus)可配置物品总线$()$(li)$(l:hatch/configurable_dual_hatch)可配置总成、终极可配置总成$()$(li)$(l:hatch/locked_item_output_bus)留存输出总线$()现在支持拥有更大的槽位堆叠了$(li)自适配电网终端UI美化，新增$(item)已加载数量显示$()"
+      "text": "此页面涵盖了上个正式版之后发布的全部热修hotfix。$(br)$(thing)$(_)功能性更新：$()$(br)$(li)$(l:hatch/configurable_fluid_hatch)可配置流体仓$()$(li)$(l:hatch/configurable_item_bus)可配置物品总线$()$(li)$(l:hatch/configurable_dual_hatch)可配置总成、终极可配置总成$()$(li)$(l:hatch/lock_item_output_bus)留存输出总线$()现在支持拥有更大的槽位堆叠了$(li)自适配电网终端UI美化，新增$(item)已加载数量显示$()"
     },
     {
       "type": "text",

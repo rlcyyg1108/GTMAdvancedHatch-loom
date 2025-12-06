@@ -283,13 +283,14 @@ public class PhantomItemCapacityWidget extends SlotWidget implements IPhantomAmo
                 else if (button == 1)
                     writeClientAction(MachinesConstants.MOUSE_RIGHT_CLICK_ACTION_ID, buffer -> {});
                 else if (button == 2)
-                    writeClientAction(MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID, buffer -> {});
+                    writeClientAction(MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID, buffer -> buffer.writeBoolean(isCtrlDown()));
             }
             return true;
         }
         return false;
     }
 
+    @OnlyIn(Dist.DEDICATED_SERVER)
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         switch (id) {
@@ -301,13 +302,14 @@ public class PhantomItemCapacityWidget extends SlotWidget implements IPhantomAmo
             }
             case MachinesConstants.MOUSE_LEFT_CLICK_ACTION_ID -> handlePhantomClick();
             case MachinesConstants.MOUSE_RIGHT_CLICK_ACTION_ID -> {}
-            case MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID -> this.handleMiddleClick();
+            case MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID -> this.handleMiddleClick(buffer.readBoolean());
             default -> super.handleClientAction(id, buffer);
         }
 
         this.detectAndSendChanges();
     }
 
+    @OnlyIn(Dist.DEDICATED_SERVER)
     private void handleScrollAction(long newAmount) {
         if (this.getHandler() != null)
             if (icItemTransfer.isTruncate(this.slot, newAmount) && !isWarned) {
@@ -319,8 +321,9 @@ public class PhantomItemCapacityWidget extends SlotWidget implements IPhantomAmo
             }
     }
 
-    private void handleMiddleClick() {
-        if (!isCtrlDown() || lockScroll) {
+    @OnlyIn(Dist.DEDICATED_SERVER)
+    private void handleMiddleClick(boolean isCtrlDown) {
+        if (!isCtrlDown || lockScroll) {
             reverseLockScroll();
         } else {
             if (this.getHandler() != null)
@@ -346,6 +349,7 @@ public class PhantomItemCapacityWidget extends SlotWidget implements IPhantomAmo
         });
     }
 
+    @OnlyIn(Dist.DEDICATED_SERVER)
     private void handlePhantomClick() {
         ItemStack itemStack = this.gui.getModularUIContainer().getCarried().copy();
         if (!itemStack.isEmpty()) {

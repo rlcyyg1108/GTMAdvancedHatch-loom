@@ -156,19 +156,20 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
                 else if (button == 1)
                     writeClientAction(MachinesConstants.MOUSE_RIGHT_CLICK_ACTION_ID, buffer -> {});
                 else if (button == 2)
-                    writeClientAction(MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID, buffer -> {});
+                    writeClientAction(MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID, buffer -> buffer.writeBoolean(isCtrlDown()));
             }
             return true;
         }
         return false;
     }
 
+    @OnlyIn(Dist.DEDICATED_SERVER)
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         switch (id) {
             case MachinesConstants.SCROLL_ACTION_ID -> this.handleScrollAction(buffer.readLong());
             case MachinesConstants.MOUSE_LEFT_CLICK_ACTION_ID -> this.handlePhantomClick();
-            case MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID -> this.handleMiddleClick();
+            case MachinesConstants.MOUSE_MIDDLE_CLICK_ACTION_ID -> this.handleMiddleClick(buffer.readBoolean());
             case 2 -> super.handleClientAction(2, buffer); // 不要动父类的流体设置方法
             default -> super.handleClientAction(id, buffer);
         }
@@ -176,6 +177,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         this.detectAndSendChanges();
     }
 
+    @OnlyIn(Dist.DEDICATED_SERVER)
     private void handleScrollAction(long newAmount) {
         if (this.getFluidTank() != null)
             if (icFluidTank.isTruncate(this.tank, newAmount) && !isWarned) {
@@ -187,8 +189,9 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
             }
     }
 
-    private void handleMiddleClick() {
-        if (!isCtrlDown() || lockScroll) {
+    @OnlyIn(Dist.DEDICATED_SERVER)
+    private void handleMiddleClick(boolean isCtrlDown) {
+        if (!isCtrlDown || lockScroll) {
             reverseLockScroll();
         } else {
             if (this.getFluidTank() != null)
@@ -224,6 +227,7 @@ public class PhantomFluidCapacityWidget extends ScrollablePhantomFluidWidget imp
         }
     }
 
+    @OnlyIn(Dist.DEDICATED_SERVER)
     private void handlePhantomClick() {
         ItemStack itemStack = this.gui.getModularUIContainer().getCarried().copy();
         if (!itemStack.isEmpty()) {

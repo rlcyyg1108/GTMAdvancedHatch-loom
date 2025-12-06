@@ -142,16 +142,6 @@ public class ConfigSlotWidget extends SlotWidget {
         }
     }
 
-    @Override
-    public void setCurrentJEIRenderedIngredient(Object ingredient) {
-        super.setCurrentJEIRenderedIngredient(ingredient);
-        if (ingredient instanceof ItemStack) {
-            this.currentJEIRenderedIngredient = (ItemStack) ingredient;
-        } else {
-            this.currentJEIRenderedIngredient = null;
-        }
-    }
-
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (this.slotReference != null && this.drawHoverTips && this.isMouseOverElement((double) mouseX, (double) mouseY) && this.getHoverElement((double) mouseX, (double) mouseY) == this) {
