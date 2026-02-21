@@ -23,7 +23,7 @@ public abstract class RecipeModifierListMixin {
     @Inject(remap = false, method = "apply", at = @At("RETURN"), cancellable = true)
     private void applyMixin(MetaMachine machine, GTRecipe recipe, OCParams params, OCResult result, CallbackInfoReturnable<GTRecipe> cir) {
         GTRecipe gtRecipe = cir.getReturnValue();
-        if (gtRecipe != null && gtRecipe.duration < 20) {
+        if (gtRecipe != null && gtRecipe.duration < 100) {
             if (machine instanceof MultiblockControllerMachine mmachine) {
                 boolean hasNetHatch = false;
                 for (IMultiPart part : mmachine.getParts()) {
@@ -34,8 +34,8 @@ public abstract class RecipeModifierListMixin {
                 }
                 if (!hasNetHatch) return;
                 // GTMAdvancedHatch.LOGGER.info("gtRecipe.duration: {}", gtRecipe.duration);
-                // cir.setReturnValue(gtRecipe.copy(ContentModifier.multiplier(Math.ceil(20.0 / gtRecipe.duration))));
-                cir.setReturnValue(BatchLogic.applyBatch(machine, gtRecipe, (int) Math.ceil(20.0 / gtRecipe.duration)).getFirst());
+                // cir.setReturnValue(gtRecipe.copy(ContentModifier.multiplier(Math.ceil(100.0 / gtRecipe.duration))));
+                cir.setReturnValue(BatchLogic.applyBatch(machine, gtRecipe, (int) Math.ceil(100.0 / gtRecipe.duration)).getFirst());
             }
         }
     }
